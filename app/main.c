@@ -14,13 +14,13 @@ enum COLOR {
   BLACK = 0x000000
 };
 
+int buffer[480][800];
+
 int draw_pixel(int device, unsigned int x, unsigned int y, unsigned int color) {
   if (device == -1) {
     fprintf(stderr, "Failed to open framebuffer device\n");
     return -1;
   }
-
-  int buffer[480][800];
 
   if (x >= 800 || y >= 480) {
     fprintf(stderr, "Invalid coordinates\n");
@@ -29,7 +29,7 @@ int draw_pixel(int device, unsigned int x, unsigned int y, unsigned int color) {
 
   buffer[y][x] = color;
 
-  int write_bytes = write(device, buffer, sizeof(buffer));
+  int write_bytes = pwrite(device, &buffer[y][x], sizeof(int), (y * 800 + x) * sizeof(int));
 
   if (write_bytes == -1) {
     fprintf(stderr, "Failed to write to framebuffer\n");
@@ -40,6 +40,13 @@ int draw_pixel(int device, unsigned int x, unsigned int y, unsigned int color) {
 
 int main(void) {
   int device = open("/dev/fb0", O_RDWR);
+  if (device == -1) {
+    fprintf(stderr, "Failed to open framebuffer device\n");
+    return -1;
+  }
+
+  memset(buffer, BLACK, sizeof(buffer));
+
   for (int i = 0; i < 480; i++) {
     for (int j = 0; j < 800; j++) {
       draw_pixel(device, j, i, BLUE);
