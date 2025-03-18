@@ -45,6 +45,13 @@ int main(void) {
       draw_pixel(device, j, i, BLUE);
     }
   }
+
+  // display a rectangle starting at (100, 100) with width 200 and height 300
+  for (int i = 100; i < 400; i++) {
+    for (int j = 100; j < 300; j++) {
+      draw_pixel(device, j, i, WHITE);
+    }
+  }
   close(device);
   return 0;
 }
