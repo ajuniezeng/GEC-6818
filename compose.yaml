@@ -1,0 +1,12 @@
+services:
+  name: compiler
+  builder:
+    image: arm64v8/ubuntu:latest
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: /bin/bash
+    tty: true
+    stdin_open: true
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
