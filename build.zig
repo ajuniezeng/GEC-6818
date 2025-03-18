@@ -15,14 +15,14 @@ pub fn build(b: *std.Build) void {
     });
 
     module.addCSourceFiles(.{
-        .files = &.{
-            "app/main.c",
-        },
-        .flags = &[_][]const u8{ "-std=c11", "-Wall", "-Wextra", "-Wshadow", "-Wpedantic", "-pthread", "-Os" },
+        .files = &.{ "app/main.c", "src/lcd_control.c" },
+        .flags = &.{ "-std=c11", "-Wall", "-Wextra", "-Wshadow", "-Wpedantic", "-pthread", "-Os" },
     });
 
+    module.addIncludePath(b.path("src"));
+
     const artifact = b.addExecutable(.{
-        .name = "GEC",
+        .name = "GEC-6818",
         .root_module = module,
     });
 
