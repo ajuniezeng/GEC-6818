@@ -5,7 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "display.h"
+#include "bmp.h"
 #include "lcd_control.h"
 
 int main(void) {
@@ -14,7 +14,7 @@ int main(void) {
   lcd.clear(&lcd);
   lcd.draw_dark_full_screen(&lcd);
 
-  display_string(&lcd, "Hello World!", 100, 200, WHITE, BLACK);
+  render_bmp(&lcd, "pic/pic2.bmp", 100, 200);
 
   lcd_destructor(&lcd);
   return 0;
