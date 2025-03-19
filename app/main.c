@@ -1,29 +1,34 @@
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "lcd_control.h"
 
 int main(void) {
-  int device = open("/dev/fb0", O_RDWR);
-  if (device == -1) {
-    fprintf(stderr, "Failed to open framebuffer device\n");
-    return -1;
-  }
+  struct LCD lcd;
+  LCD_constructor(&lcd);
+  lcd.clear(&lcd);
 
-  for (int i = 0; i < 480; i++) {
-    for (int j = 0; j < 800; j++) {
-      draw_pixel(device, j, i, BLUE);
+  for (size_t i = 0; i < SCREEN_H; i++) {
+    for (size_t j = 0; j < SCREEN_W; j++) {
+      lcd.draw(&lcd, i, j, RED);
     }
   }
 
-  // display a rectangle starting at (100, 100) with width 200 and height 300
-  for (int i = 99; i < 400; i++) {
-    for (int j = 99; j < 300; j++) {
-      draw_pixel(device, j, i, WHITE);
+  int device = open(LCD_DEV_PATH, O_RDWR);
+  uint32_t *addr = mmap(NULL, SCREEN_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, device, 0);
+
+  for (size_t i = 99; i < 400; i++) {
+    for (size_t j = 99; j < 300; j++) {
+      draw_pixel_memory(addr, i, j, WHITE);
     }
   }
-  close(device);
+
+  sleep(30);
+
+  LCD_destructor(&lcd);
   return 0;
 }
