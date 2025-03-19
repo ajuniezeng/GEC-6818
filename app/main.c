@@ -38,7 +38,15 @@ int main(void) {
 
   // render_string(&lcd, "20220440333", 400, 700, BLACK, TEAL);
 
-  render_bmp(&lcd, "pic/pic2.bmp", 0, 0);
+  while (1) {
+    render_bmp(&lcd, "pic/pic0.bmp", 0, 0);
+    sleep(1);
+    render_bmp(&lcd, "pic/pic1.bmp", 0, 0);
+    sleep(1);
+    render_bmp(&lcd, "pic/pic2.bmp", 0, 0);
+    sleep(1);
+  }
+  
   lcd_destructor(&lcd);
   return 0;
 }
