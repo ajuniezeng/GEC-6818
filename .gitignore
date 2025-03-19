@@ -84,3 +84,6 @@ zig-out/
 
 # vscode
 .vscode/
+
+# QEMU
+qemu/

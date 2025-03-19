@@ -2,8 +2,6 @@
 #include <stdint.h>
 #define _POSIX_C_SOURCE 200809L
 
-#include "lcd_control.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,44 +9,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-int draw_pixel(int device, size_t height, size_t width, uint32_t color) {
-  if (device == -1) {
-    fprintf(stderr, "Failed to open framebuffer device\n");
-    return -1;
-  }
-
-  if (height >= SCREEN_H || width >= SCREEN_W) {
-    fprintf(stderr, "Invalid coordinates\n");
-    return -1;
-  }
-
-  int buffer[SCREEN_H][SCREEN_W];
-  buffer[height][width] = color;
-
-  int write_bytes = pwrite(device, &buffer[width][height], sizeof(int), (height * SCREEN_W + width) * sizeof(int));
-
-  if (write_bytes == -1) {
-    fprintf(stderr, "Failed to write to framebuffer\n");
-    return -1;
-  }
-
-  return 0;
-}
-
-void draw_pixel_memory(uint32_t *addr, size_t height, size_t width, uint32_t color) {
-  if (addr == MAP_FAILED) {
-    fprintf(stderr, "Failed to map framebuffer\n");
-    exit(EXIT_FAILURE);
-  }
-
-  if (height >= SCREEN_H || width >= SCREEN_W) {
-    fprintf(stderr, "Invalid coordinates\n");
-    return;
-  }
-
-  addr[height * SCREEN_W + width] = color;
-}
-
+#include "lcd_control.h"
 
 static void clear(struct LCD *self) {
   if (self == NULL || self->addr == NULL) {
@@ -59,27 +20,40 @@ static void clear(struct LCD *self) {
   memset(self->addr, 0x00, SCREEN_BYTES);
 }
 
-static void draw(struct LCD *self, size_t height, size_t width, uint32_t color) {
+static void draw_pixel(struct LCD *self, size_t height, size_t width, uint32_t color) {
   if (self == NULL || self->addr == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
   }
 
-  if (height >= SCREEN_H || width >= SCREEN_W) {
-    fprintf(stderr, "Warning: Draw LCD with index = (%zu, %zu)\n", height, width);
+  if (height >= SCREEN_HEIGHT || width >= SCREEN_WIDTH) {
+    fprintf(stderr, "Warning: Draw LCD with invalid index = (%zu, %zu)\n", height, width);
     return;
   }
 
-  self->addr[height * SCREEN_W + width] = color;
+  self->addr[height * SCREEN_WIDTH + width] = color;
 }
 
-void LCD_constructor(struct LCD *self) {
+static void draw_dark_full_screen(struct LCD *self) {
+  if (self == NULL || self->addr == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (size_t i = 0; i < SCREEN_HEIGHT; i++) {
+    for (size_t j = 0; j < SCREEN_WIDTH; j++) {
+      self->addr[i * SCREEN_WIDTH + j] = BLACK;
+    }
+  }
+}
+
+void lcd_new(struct LCD *self) {
   if (self == NULL) {
     fprintf(stderr, "LCD constructs on NULL\n");
     exit(EXIT_FAILURE);
   }
 
-  self->device = open(LCD_DEV_PATH, O_RDWR);
+  self->device = open(LCD_DEVICE_PATH, O_RDWR);
   if (self->device == -1) {
     perror("Failed to open framebuffer device");
     exit(EXIT_FAILURE);
@@ -92,10 +66,11 @@ void LCD_constructor(struct LCD *self) {
   }
 
   self->clear = clear;
-  self->draw = draw;
+  self->draw_pixel = draw_pixel;
+  self->draw_dark_full_screen = draw_dark_full_screen;
 }
 
-void LCD_destructor(struct LCD *self) {
+void lcd_destructor(struct LCD *self) {
   if (self == NULL || self->device == -1 || self->addr == NULL) {
     fprintf(stderr, "LCD double freed\n");
     exit(EXIT_FAILURE);
@@ -106,4 +81,18 @@ void LCD_destructor(struct LCD *self) {
 
   self->device = -1;
   self->addr = NULL;
+}
+
+void draw_pixel_memory(uint32_t *addr, size_t row, size_t column, uint32_t color) {
+  if (addr == MAP_FAILED) {
+    fprintf(stderr, "Failed to map framebuffer\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (row >= SCREEN_HEIGHT || column >= SCREEN_WIDTH) {
+    fprintf(stderr, "Invalid coordinates\n");
+    return;
+  }
+
+  addr[row * SCREEN_WIDTH + column] = color;
 }
