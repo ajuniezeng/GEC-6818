@@ -49,15 +49,16 @@ enum COLOR {
 struct LCD {
   int device;
   uint32_t *addr;
+  uint32_t background_color;
 
   /// Clear the screen
   void (*clear)(struct LCD *self);
 
   /// Draw a pixel on the screen
-  void (*draw_pixel)(struct LCD *self, size_t row, size_t column, uint32_t color);
+  void (*draw_pixel)(struct LCD *self, size_t row, size_t column, enum COLOR color);
 
   /// Make the full screen dark
-  void (*draw_dark_full_screen)(struct LCD *self);
+  void (*draw_background)(struct LCD *self, enum COLOR color);
 };
 
 /// Open the framebuffer device and map the framebuffer to the memory

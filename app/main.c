@@ -5,8 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-// #include "bmp.h"
-#include "bmp.h"
+#include "font.h"
 #include "lcd_control.h"
 #include "render.h"
 
@@ -14,39 +13,21 @@ int main(void) {
   struct LCD lcd;
   lcd_new(&lcd);
   lcd.clear(&lcd);
-  // for (size_t i = 0; i < SCREEN_HEIGHT; i++) {
-  //   for (size_t j = 0; j < SCREEN_WIDTH; j++) {
-  //     lcd.draw_pixel(&lcd, i, j, TEAL);
-  //   }
-  // }
+  lcd.draw_background(&lcd, SLATE_GRAY);
 
-  // for (size_t i = 6; i < 20; i++) {
-  //   render_zh_cn_character(&lcd, i, 50, 20 + (i - 6) * 32 , BLACK, TEAL);
-  // }
+  enum ZH_CH_CHARACTERS title[] = {ZHI,  NENG, SHENG, CHAN,  CHE, JIAN, HUAN,
+                                   JING, SHU,  JU,    JIAN2, CE,  XI,   TONG};
+  render_zh_cn_string(&lcd, title, 14, 20, 100, BLACK, lcd.background_color);
 
-  // render_string(&lcd, "By", 380, 620, BLACK, TEAL);
+  render_string(&lcd, "By", 340, 420, BLACK, lcd.background_color);
+  enum ZH_CH_CHARACTERS name_0[] = {ZENG, QING, JIE2};
+  render_zh_cn_string(&lcd, name_0, 3, 380, 440, BLACK, lcd.background_color);
+  render_string(&lcd, "20220440333", 380, 500, BLACK, lcd.background_color);
 
-  // for (size_t i = 20; i < 23; i++) {
-  //   render_zh_cn_character(&lcd, i, 380, 640 + (i - 20) * 32 , BLACK, TEAL);
-  // }
+  enum ZH_CH_CHARACTERS name_1[] = {WEN, JIA, JUN};
+  render_zh_cn_string(&lcd, name_1, 3, 420, 500, BLACK, lcd.background_color);
+  render_string(&lcd, "20220440333", 420, 500, BLACK, lcd.background_color);
 
-  // render_string(&lcd, "20220440333", 380, 700, BLACK, TEAL);
-  
-  // for (size_t i = 23; i < 26; i++) {
-  //   render_zh_cn_character(&lcd, i, 400, 640 + (i - 23) * 32 , BLACK, TEAL);
-  // }
-
-  // render_string(&lcd, "20220440333", 400, 700, BLACK, TEAL);
-
-  while (1) {
-    render_bmp(&lcd, "pic/pic0.bmp", 0, 0);
-    sleep(1);
-    render_bmp(&lcd, "pic/pic1.bmp", 0, 0);
-    sleep(1);
-    render_bmp(&lcd, "pic/pic2.bmp", 0, 0);
-    sleep(1);
-  }
-  
   lcd_destructor(&lcd);
   return 0;
 }

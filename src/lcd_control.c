@@ -20,7 +20,7 @@ static void clear(struct LCD *self) {
   memset(self->addr, 0x00, SCREEN_BYTES);
 }
 
-static void draw_pixel(struct LCD *self, size_t height, size_t width, uint32_t color) {
+static void draw_pixel(struct LCD *self, size_t height, size_t width, enum COLOR color) {
   if (self == NULL || self->addr == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
@@ -34,7 +34,7 @@ static void draw_pixel(struct LCD *self, size_t height, size_t width, uint32_t c
   self->addr[height * SCREEN_WIDTH + width] = color;
 }
 
-static void draw_dark_full_screen(struct LCD *self) {
+static void draw_background(struct LCD *self, enum COLOR color) {
   if (self == NULL || self->addr == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
@@ -42,9 +42,11 @@ static void draw_dark_full_screen(struct LCD *self) {
 
   for (size_t i = 0; i < SCREEN_HEIGHT; i++) {
     for (size_t j = 0; j < SCREEN_WIDTH; j++) {
-      self->addr[i * SCREEN_WIDTH + j] = BLACK;
+      self->addr[i * SCREEN_WIDTH + j] = color;
     }
   }
+
+  self->background_color = color;
 }
 
 void lcd_new(struct LCD *self) {
@@ -67,7 +69,7 @@ void lcd_new(struct LCD *self) {
 
   self->clear = clear;
   self->draw_pixel = draw_pixel;
-  self->draw_dark_full_screen = draw_dark_full_screen;
+  self->draw_background = draw_background;
 }
 
 void lcd_destructor(struct LCD *self) {
