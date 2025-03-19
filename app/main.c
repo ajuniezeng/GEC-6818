@@ -13,8 +13,8 @@ int main(void) {
   lcd_new(&lcd);
   lcd.clear(&lcd);
   lcd.draw_dark_full_screen(&lcd);
-  
-  display_string(&lcd, "Hello World!", 100, 200, WHITE);
+
+  display_string(&lcd, "Hello World!", 100, 200, WHITE, BLACK);
 
   lcd_destructor(&lcd);
   return 0;
