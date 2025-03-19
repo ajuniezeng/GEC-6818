@@ -24,10 +24,11 @@ void render_bmp(struct LCD *lcd, const char *bmp_path, size_t row, size_t column
   // check whether the BMP file is valid
   char header[2];
   read(bmp_file, header, 2);
-  if (header[0] != 'B' || header[1] != 'M') {
-    fprintf(stderr, "Invalid BMP file\n");
-    exit(EXIT_FAILURE);
-  }
+
+  // if (header[0] != 'B' || header[1] != 'M') {
+  //   fprintf(stderr, "Invalid BMP file\n");
+  //   exit(EXIT_FAILURE);
+  // }
 
   int width, height;
   short depth;
