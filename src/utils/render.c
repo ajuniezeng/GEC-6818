@@ -194,7 +194,7 @@ void render_container(struct LCD *lcd, size_t height, size_t width, size_t row, 
 
   render_line(lcd, 1, width, row, column, color);
   render_vertical_line(lcd, height, 1, row, column, color);
-  render_line(lcd, 1, width, row, column + width - 1, color);
+  render_line(lcd, 1, width, row + height, column, color);
   render_vertical_line(lcd, height, 1, row, column + width - 1, color);
 
   for (size_t i = 0; i < height - 2; i++) {
@@ -214,7 +214,7 @@ void render_time(struct LCD *lcd, size_t row, size_t column, enum COLOR color, e
   struct tm *time_info = localtime(&current_time);
 
   char time_string[9];
-  strftime(time_string, 9, "%Y/%m/%d %H:%M:%S", time_info);
+  strftime(time_string, 9, "%Y/%m/%d", time_info);
 
   render_string(lcd, time_string, row, column, color, background_color);
 }
