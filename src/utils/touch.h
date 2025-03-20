@@ -2,7 +2,6 @@
 
 #define TOUCH_DEVICE_PATH "/dev/input/event0"
 
-#include <linux/input.h>
 #include <stddef.h>
 
 enum MOVE { UP, DOWN, LEFT, RIGHT, TAP, NONE };

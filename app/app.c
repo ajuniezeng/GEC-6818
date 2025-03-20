@@ -19,7 +19,13 @@ void start(void) {
   while (1) {
     enum MENU menu;
 
-    while ((menu = select_menu(&touch) == INVALID)) continue;
+    while (1) {
+      menu = select_menu(&touch);
+      if (menu == INVALID)
+        continue;
+      else
+        break;
+    }
 
     printf("%d\n", menu);
     if (menu == EXIT) break;
