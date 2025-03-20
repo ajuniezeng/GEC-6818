@@ -18,7 +18,7 @@ static enum MOVE get_move(struct Touch *self) {
   while (1) {
     int status = read(self->device, &event, sizeof(struct input_event));
     if (status == -1) {
-      perror("read");
+      perror("Failed to read touch event");
       exit(EXIT_FAILURE);
     }
 
@@ -31,11 +31,11 @@ static enum MOVE get_move(struct Touch *self) {
         start_y = self->y;
       }
       if (event.value == 0) {
-        const int delta = 50;
-        if (self->x > start_x && self->x - start_x >= delta) return RIGHT;
-        if (start_x > self->x && start_x - self->x >= delta) return LEFT;
-        if (start_y > self->y && start_y - self->y >= delta) return UP;
-        if (self->y > start_y && self->y - start_y >= delta) return DOWN;
+        const int DELTA = 50;
+        if (self->x > start_x && self->x - start_x >= DELTA) return RIGHT;
+        if (start_x > self->x && start_x - self->x >= DELTA) return LEFT;
+        if (start_y > self->y && start_y - self->y >= DELTA) return UP;
+        if (self->y > start_y && self->y - start_y >= DELTA) return DOWN;
         return TAP;
       }
     }

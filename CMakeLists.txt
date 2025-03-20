@@ -16,6 +16,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -pthread -
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/app")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/utils")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

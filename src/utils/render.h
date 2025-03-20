@@ -26,4 +26,19 @@ void render_zh_cn_character(struct LCD *lcd, enum ZH_CH_CHARACTERS character, si
 void render_zh_cn_string(struct LCD *lcd, const enum ZH_CH_CHARACTERS *string, size_t length, size_t row,
                          size_t column, enum COLOR color, enum COLOR background_color);
 
+/// Render a BMP image on the LCD screen.
 void render_bmp(struct LCD *lcd, const char *bmp_path, size_t row, size_t column);
+
+/// Render a line with the height and width on the LCD screen.
+void render_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column, enum COLOR color);
+
+/// Render a vertical line with the height and width on the LCD screen.
+void render_vertical_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
+                          enum COLOR color);
+
+/// Render a container with the height and width on the LCD screen.
+void render_container(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
+                      enum COLOR color, enum COLOR background_color);
+
+/// Render current time on the LCD screen.
+void render_time(struct LCD *lcd, size_t row, size_t column, enum COLOR color, enum COLOR background_color);

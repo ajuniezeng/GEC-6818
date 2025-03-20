@@ -1,12 +1,12 @@
 #include "render.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
+#include <time.h>
 #include <unistd.h>
-
-#include "font.h"
 
 void render_ascii_character(struct LCD *lcd, char ascii, size_t row, size_t column, enum COLOR color,
                             enum COLOR background_color) {
@@ -90,13 +90,13 @@ void render_bmp(struct LCD *lcd, const char *bmp_path, size_t row, size_t column
   }
 
   // check whether the BMP file is valid
-  // char header[2];
-  // read(bmp_file, header, 2);
+  char header[2];
+  read(bmp_file, header, 2);
 
-  // if (header[0] != 'B' || header[1] != 'M') {
-  //   fprintf(stderr, "Invalid BMP file\n");
-  //   exit(EXIT_FAILURE);
-  // }
+  if (header[0] != 'B' || header[1] != 'M') {
+    fprintf(stderr, "Invalid BMP file\n");
+    exit(EXIT_FAILURE);
+  }
 
   int width, height;
   short depth;
@@ -156,4 +156,65 @@ void render_bmp(struct LCD *lcd, const char *bmp_path, size_t row, size_t column
 
   close(bmp_file);
   free(bmp_data);
+}
+
+void render_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column, enum COLOR color) {
+  if (lcd == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (size_t i = 0; i < height; i++) {
+    for (size_t j = 0; j < width; j++) {
+      lcd->draw_pixel(lcd, row + i, column + j, color);
+    }
+  }
+}
+
+void render_vertical_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
+                          enum COLOR color) {
+  if (lcd == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (size_t i = 0; i < height; i++) {
+    for (size_t j = 0; j < width; j++) {
+      lcd->draw_pixel(lcd, row + i, column, color);
+    }
+  }
+}
+
+void render_container(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
+                      enum COLOR color, enum COLOR background_color) {
+  if (lcd == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  render_line(lcd, 1, width, row, column, color);
+  render_vertical_line(lcd, height, 1, row, column, color);
+  render_line(lcd, 1, width, row, column + width - 1, color);
+  render_vertical_line(lcd, height, 1, row, column + width - 1, color);
+
+  for (size_t i = 0; i < height - 2; i++) {
+    for (size_t j = 0; j < width - 2; j++) {
+      lcd->draw_pixel(lcd, row + i + 1, column + j + 1, background_color);
+    }
+  }
+}
+
+void render_time(struct LCD *lcd, size_t row, size_t column, enum COLOR color, enum COLOR background_color) {
+  if (lcd == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  time_t current_time = time(NULL);
+  struct tm *time_info = localtime(&current_time);
+
+  char time_string[9];
+  strftime(time_string, 9, "%Y/%m/%d %H:%M:%S", time_info);
+
+  render_string(lcd, time_string, row, column, color, background_color);
 }
