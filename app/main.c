@@ -25,7 +25,7 @@ int main(void) {
   render_string(&lcd, "20220440333", 340, 560, BLACK, lcd.background_color);
 
   enum ZH_CH_CHARACTERS name_1[] = {WEN, JIA, JUN};
-  render_zh_cn_string(&lcd, name_1, 3, 460, 500, BLACK, lcd.background_color);
+  render_zh_cn_string(&lcd, name_1, 3, 380, 500, BLACK, lcd.background_color);
   render_string(&lcd, "20220440333", 380, 560, BLACK, lcd.background_color);
 
   lcd_destructor(&lcd);
