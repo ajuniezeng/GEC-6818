@@ -43,25 +43,23 @@ void start(void) {
       break;
     }
 
-    switch (menu) {
-      case (TURN_ON_SLASH_OFF_LED1):
-        led1 = !led1;
-        led_control(LED0, led1);
-        break;
-      case (TURN_ON_SLASH_OFF_LED2):
-        led2 = !led2;
-        led_control(LED1, led2);
-        break;
-      case (TURN_ON_SLASH_OFF_LED3):
-        led3 = !led3;
-        led_control(LED2, led3);
-        break;
-      case (TRUN_ON_SLASH_OFF_BEEP):
-        beep = !beep;
-        beep_control(beep);
-        break;
-      default:
-        continue;
+    if (TURN_ON_SLASH_OFF_LED1) {
+      led1 = !led1;
+      led_control(LED0, led1);
+    }
+    if (TURN_ON_SLASH_OFF_LED2) {
+      led2 = !led2;
+      led_control(LED1, led2);
+    }
+    if (TURN_ON_SLASH_OFF_LED3) {
+      led3 = !led3;
+      led_control(LED2, led3);
+    }
+    if (TRUN_ON_SLASH_OFF_BEEP) {
+      beep = !beep;
+      beep_control(beep);
     }
   }
+  ui.lcd.draw_background(&ui.lcd, BLACK);
+  ui_destructor(&ui);
 }
