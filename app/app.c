@@ -43,7 +43,7 @@ void start(void) {
       break;
     }
 
-    if (TURN_ON_SLASH_OFF_LED1) {
+    if (menu == TURN_ON_SLASH_OFF_LED1) {
       if (!led1) {
         led_control(LED0, 1);
         led1 = 1;
@@ -52,7 +52,7 @@ void start(void) {
         led1 = 0;
       }
     }
-    if (TURN_ON_SLASH_OFF_LED2) {
+    if (menu == TURN_ON_SLASH_OFF_LED2) {
       if (!led2) {
         led_control(LED1, 1);
         led2 = 1;
@@ -61,7 +61,7 @@ void start(void) {
         led2 = 0;
       }
     }
-    if (TURN_ON_SLASH_OFF_LED3) {
+    if (menu == TURN_ON_SLASH_OFF_LED3) {
       if (!led3) {
         led_control(LED2, 1);
         led3 = 1;
@@ -70,7 +70,7 @@ void start(void) {
         led3 = 0;
       }
     }
-    if (TRUN_ON_SLASH_OFF_BEEP) {
+    if (menu == TRUN_ON_SLASH_OFF_BEEP) {
       beep_control(1);
       sleep(1);
       beep_control(0);
