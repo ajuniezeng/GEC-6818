@@ -44,12 +44,14 @@ enum COLOR {
   ORCHID = 0xDA70D6,
   THISTLE = 0xD8BFD8,
   LAVENDER = 0xE6E6FA,
+  STONE_300 = 0xD6D3D1,
 };
 
 struct LCD {
   int device;
-  uint32_t *addr;
+  uint32_t *address;
   uint32_t background_color;
+  uint32_t *address_buffer;
 
   /// Clear the screen
   void (*clear)(struct LCD *self);
@@ -59,6 +61,12 @@ struct LCD {
 
   /// Make the full screen dark
   void (*draw_background)(struct LCD *self, enum COLOR color);
+
+  /// Copy the screen to the buffer
+  void (*copy_to_buffer)(struct LCD *self);
+
+  /// Restore the screen from the buffer
+  void (*restore_from_buffer)(struct LCD *self);
 };
 
 /// Open the framebuffer device and map the framebuffer to the memory

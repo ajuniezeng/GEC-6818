@@ -12,16 +12,17 @@
 #include "lcd_control.h"
 
 static void clear(struct LCD *self) {
-  if (self == NULL || self->addr == NULL) {
+  if (self == NULL || self->address == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
   }
 
-  memset(self->addr, 0x00, SCREEN_BYTES);
+  memset(self->address, 0x00, SCREEN_BYTES);
+  memset(self->address_buffer, 0x00, SCREEN_BYTES);
 }
 
 static void draw_pixel(struct LCD *self, size_t height, size_t width, enum COLOR color) {
-  if (self == NULL || self->addr == NULL) {
+  if (self == NULL || self->address == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
   }
@@ -31,22 +32,40 @@ static void draw_pixel(struct LCD *self, size_t height, size_t width, enum COLOR
     return;
   }
 
-  self->addr[height * SCREEN_WIDTH + width] = color;
+  self->address[height * SCREEN_WIDTH + width] = color;
 }
 
 static void draw_background(struct LCD *self, enum COLOR color) {
-  if (self == NULL || self->addr == NULL) {
+  if (self == NULL || self->address == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
   }
 
   for (size_t i = 0; i < SCREEN_HEIGHT; i++) {
     for (size_t j = 0; j < SCREEN_WIDTH; j++) {
-      self->addr[i * SCREEN_WIDTH + j] = color;
+      self->address[i * SCREEN_WIDTH + j] = color;
     }
   }
 
   self->background_color = color;
+}
+
+static void copy_to_buffer(struct LCD *self) {
+  if (self == NULL || self->address == NULL || self->address_buffer == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  memcpy(self->address_buffer, self->address, SCREEN_BYTES);
+}
+
+static void restore_from_buffer(struct LCD *self) {
+  if (self == NULL || self->address == NULL || self->address_buffer == NULL) {
+    fprintf(stderr, "LCD is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  memcpy(self->address, self->address_buffer, SCREEN_BYTES);
 }
 
 void lcd_new(struct LCD *self) {
@@ -61,8 +80,8 @@ void lcd_new(struct LCD *self) {
     exit(EXIT_FAILURE);
   }
 
-  self->addr = mmap(NULL, SCREEN_BYTES, PROT_WRITE | PROT_READ, MAP_SHARED, self->device, 0);
-  if (self->addr == MAP_FAILED) {
+  self->address = mmap(NULL, SCREEN_BYTES, PROT_WRITE | PROT_READ, MAP_SHARED, self->device, 0);
+  if (self->address == MAP_FAILED) {
     perror("Failed to map framebuffer");
     exit(EXIT_FAILURE);
   }
@@ -70,19 +89,23 @@ void lcd_new(struct LCD *self) {
   self->clear = clear;
   self->draw_pixel = draw_pixel;
   self->draw_background = draw_background;
+  self->copy_to_buffer = copy_to_buffer;
+  self->restore_from_buffer = restore_from_buffer;
 }
 
 void lcd_destructor(struct LCD *self) {
-  if (self == NULL || self->device == -1 || self->addr == NULL) {
+  if (self == NULL || self->device == -1 || self->address == NULL || self->address_buffer == NULL) {
     fprintf(stderr, "LCD double freed\n");
     exit(EXIT_FAILURE);
   }
 
   close(self->device);
-  munmap(self->addr, SCREEN_BYTES);
+  munmap(self->address, SCREEN_BYTES);
+  munmap(self->address_buffer, SCREEN_BYTES);
 
   self->device = -1;
-  self->addr = NULL;
+  self->address = NULL;
+  self->address_buffer = NULL;
 }
 
 void draw_pixel_memory(uint32_t *addr, size_t row, size_t column, uint32_t color) {

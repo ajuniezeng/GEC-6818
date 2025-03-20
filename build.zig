@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
     });
 
     module.addCSourceFiles(.{
-        .files = &.{ "app/main.c", "app/app.c", "src/utils/lcd_control.c", "src/utils/render.c", "src/utils/touch.c", "src/menu.c" },
+        .files = &.{ "app/main.c", "app/app.c", "src/utils/lcd_control.c", "src/utils/render.c", "src/utils/touch.c", "src/utils/led_control.c", "src/menu.c", "src/ui.c" },
         .flags = &.{ "-std=c11", "-Wall", "-Wextra", "-Wshadow", "-Wpedantic", "-pthread", "-Os" },
     });
 

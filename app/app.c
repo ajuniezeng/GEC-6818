@@ -1,26 +1,23 @@
 #include "app.h"
+
 #include <stdio.h>
+#include <unistd.h>
 
 #include "menu.h"
-#include "utils/lcd_control.h"
-#include "utils/touch.h"
+#include "ui.h"
+#include "utils/led_control.h"
 
 void start(void) {
-  struct LCD lcd;
-  lcd_new(&lcd);
-  lcd.clear(&lcd);
-  lcd.draw_background(&lcd, WHITE);
+  struct Ui ui;
+  ui_new(&ui);
 
-  struct Touch touch;
-  touch_new(&touch);
-
-  render_menu_ui(&lcd);
+  ui.draw_menu(&ui);
 
   while (1) {
     enum MENU menu;
 
     while (1) {
-      menu = select_menu(&touch);
+      menu = select_menu(&ui.touch);
       if (menu == INVALID)
         continue;
       else
@@ -28,9 +25,42 @@ void start(void) {
     }
 
     printf("%d\n", menu);
-    if (menu == EXIT) break;
-  }
+    int led1 = 1;
+    int led2 = 1;
+    int led3 = 1;
+    int beep = 1;
 
-  touch_destructor(&touch);
-  lcd_destructor(&lcd);
+    switch (menu) {
+      case (EXIT):
+        // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
+        // ui.draw_prompt_window(&ui, prompt, 8);
+        led_control(LED_ALL, 0);
+        sleep(1);
+        beep_control(1);
+        sleep(1);
+        beep_control(0);
+        sleep(1);
+        led_control(LED_ALL, 1);
+        break;
+      case (TURN_ON_SLASH_OFF_LED1):
+        led1 = !led1;
+        led_control(LED0, led1);
+        break;
+      case (TURN_ON_SLASH_OFF_LED2):
+        led2 = !led2;
+        led_control(LED1, led2);
+        break;
+      case (TURN_ON_SLASH_OFF_LED3):
+        led3 = !led3;
+        led_control(LED2, led3);
+        break;
+      case (TRUN_ON_SLASH_OFF_BEEP):
+        beep = !beep;
+        beep_control(beep);
+        break;
+      default:
+        continue;
+    }
+
+  }
 }

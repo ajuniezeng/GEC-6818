@@ -35,10 +35,3 @@ void render_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_
 /// Render a vertical line with the height and width on the LCD screen.
 void render_vertical_line(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
                           enum COLOR color);
-
-/// Render a container with the height and width on the LCD screen.
-void render_container(struct LCD *lcd, size_t height, size_t width, size_t row, size_t column,
-                      enum COLOR color, enum COLOR background_color);
-
-/// Render current time on the LCD screen.
-void render_time(struct LCD *lcd, size_t row, size_t column, enum COLOR color, enum COLOR background_color);
