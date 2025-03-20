@@ -109,7 +109,7 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
   }
 
   // Store current screen
-  self->lcd.copy_to_buffer(&self->lcd);
+  // self->lcd.copy_to_buffer(&self->lcd);
 
   // TO-DO: wrap the prompt text
   size_t prompt_length = length * 32;
