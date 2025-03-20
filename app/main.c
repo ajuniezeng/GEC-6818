@@ -21,12 +21,12 @@ int main(void) {
 
   render_string(&lcd, "By", 340, 420, BLACK, lcd.background_color);
   enum ZH_CH_CHARACTERS name_0[] = {ZENG, QING, JIE2};
-  render_zh_cn_string(&lcd, name_0, 3, 380, 440, BLACK, lcd.background_color);
-  render_string(&lcd, "20220440333", 380, 500, BLACK, lcd.background_color);
+  render_zh_cn_string(&lcd, name_0, 3, 340, 460, BLACK, lcd.background_color);
+  render_string(&lcd, "20220440333", 340, 560, BLACK, lcd.background_color);
 
   enum ZH_CH_CHARACTERS name_1[] = {WEN, JIA, JUN};
-  render_zh_cn_string(&lcd, name_1, 3, 420, 500, BLACK, lcd.background_color);
-  render_string(&lcd, "20220440333", 420, 500, BLACK, lcd.background_color);
+  render_zh_cn_string(&lcd, name_1, 3, 460, 500, BLACK, lcd.background_color);
+  render_string(&lcd, "20220440333", 380, 560, BLACK, lcd.background_color);
 
   lcd_destructor(&lcd);
   return 0;
