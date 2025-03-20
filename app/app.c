@@ -25,10 +25,10 @@ void start(void) {
     }
 
     printf("%d\n", menu);
-    int led1 = 1;
-    int led2 = 1;
-    int led3 = 1;
-    int beep = 1;
+    int led1 = 0;
+    int led2 = 0;
+    int led3 = 0;
+    int beep = 0;
 
     if (menu == EXIT) {
       // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
@@ -44,20 +44,40 @@ void start(void) {
     }
 
     if (TURN_ON_SLASH_OFF_LED1) {
-      led1 = !led1;
-      led_control(LED0, led1);
+      if (!led1) {
+        led_control(LED0, 1);
+        led1 = 1;
+      } else {
+        led_control(LED0, 0);
+        led1 = 0;
+      }
     }
     if (TURN_ON_SLASH_OFF_LED2) {
-      led2 = !led2;
-      led_control(LED1, led2);
+      if (!led2) {
+        led_control(LED1, 1);
+        led2 = 1;
+      } else {
+        led_control(LED1, 0);
+        led2 = 0;
+      }
     }
     if (TURN_ON_SLASH_OFF_LED3) {
-      led3 = !led3;
-      led_control(LED2, led3);
+      if (!led3) {
+        led_control(LED2, 1);
+        led3 = 1;
+      } else {
+        led_control(LED2, 0);
+        led3 = 0;
+      }
     }
     if (TRUN_ON_SLASH_OFF_BEEP) {
-      beep = !beep;
-      beep_control(beep);
+      if (!beep) {
+        beep_control(1);
+        beep = 1;
+      } else {
+        beep_control(0);
+        beep = 0;
+      }
     }
   }
   ui.lcd.draw_background(&ui.lcd, BLACK);
