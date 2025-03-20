@@ -15,6 +15,7 @@ static enum MOVE get_move(struct Touch *self) {
 
   struct input_event event;
   int start_x = 0, start_y = 0;
+  
   while (1) {
     int status = read(self->device, &event, sizeof(struct input_event));
     if (status == -1) {

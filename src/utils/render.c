@@ -213,8 +213,8 @@ void render_time(struct LCD *lcd, size_t row, size_t column, enum COLOR color, e
   time_t current_time = time(NULL);
   struct tm *time_info = localtime(&current_time);
 
-  char time_string[9];
-  strftime(time_string, 9, "%Y/%m/%d", time_info);
+  char time_string[12];
+  strftime(time_string, 12, "%Y/%m/%d", time_info);
 
   render_string(lcd, time_string, row, column, color, background_color);
 }

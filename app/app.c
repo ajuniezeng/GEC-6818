@@ -1,4 +1,5 @@
 #include "app.h"
+#include <stdio.h>
 
 #include "menu.h"
 #include "utils/lcd_control.h"
@@ -20,6 +21,7 @@ void start(void) {
 
     while ((menu = select_menu(&touch) == INVALID)) continue;
 
+    printf("%d\n", menu);
     if (menu == EXIT) break;
   }
 
