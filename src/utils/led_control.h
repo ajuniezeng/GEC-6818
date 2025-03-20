@@ -1,7 +1,11 @@
 #pragma once
 
 #define LED_BEEP_PATH "/sys/kernel/gec_ctrl/beep"
-#define LED_PATH "/sys/kernel/gec_ctrl/"
+#define LED1_PATH "/sys/kernel/gec_ctrl/led_d7"
+#define LED2_PATH "/sys/kernel/gec_ctrl/led_d8"
+#define LED3_PATH "/sys/kernel/gec_ctrl/led_d9"
+#define LED4_PATH "/sys/kernel/gec_ctrl/led_d10"
+#define LED_ALL_PATH "/sys/kernel/gec_ctrl/led_all"
 
 enum LED {
   LED0,

@@ -30,18 +30,20 @@ void start(void) {
     int led3 = 1;
     int beep = 1;
 
+    if (menu == EXIT) {
+      // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
+      // ui.draw_prompt_window(&ui, prompt, 8);
+      led_control(LED_ALL, 0);
+      sleep(1);
+      beep_control(1);
+      sleep(1);
+      beep_control(0);
+      sleep(1);
+      led_control(LED_ALL, 1);
+      break;
+    }
+
     switch (menu) {
-      case (EXIT):
-        // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
-        // ui.draw_prompt_window(&ui, prompt, 8);
-        led_control(LED_ALL, 0);
-        sleep(1);
-        beep_control(1);
-        sleep(1);
-        beep_control(0);
-        sleep(1);
-        led_control(LED_ALL, 1);
-        break;
       case (TURN_ON_SLASH_OFF_LED1):
         led1 = !led1;
         led_control(LED0, led1);
@@ -61,6 +63,5 @@ void start(void) {
       default:
         continue;
     }
-
   }
 }

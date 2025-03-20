@@ -63,8 +63,8 @@ static void draw_menu(struct Ui *self) {
   const size_t command_4_start_column = 587;
   const char command_4_ASICC[] = "BEEP";
 
-  const size_t exit_command_start_row = 625;
-  const size_t exit_command_start_column = 270;
+  const size_t exit_command_start_row = 270;
+  const size_t exit_command_start_column = 625;
 
   render_zh_cn_string(&self->lcd, command_CN, 3, command_1_start_row, command_1_start_column, BLACK,
                       SLATE_GRAY);

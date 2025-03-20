@@ -24,28 +24,22 @@ void beep_control(int value) {
 }
 
 void led_control(enum LED led, int value) {
-  char *led_path = LED_PATH;
-  char *device_name;
+  char *led_path;
   switch (led) {
     case LED0:
-      device_name = "led_d7";
-      strcat(led_path, device_name);
+      led_path = LED1_PATH;
       break;
     case LED1:
-      device_name = "led_d8";
-      strcat(led_path, device_name);
+      led_path = LED2_PATH;
       break;
     case LED2:
-      device_name = "led_d9";
-      strcat(led_path, device_name);
+      led_path = LED3_PATH;
       break;
     case LED3:
-      device_name = "led_d10";
-      strcat(led_path, device_name);
+      led_path = LED4_PATH;
       break;
     case LED_ALL:
-      led_path = "led_d11";
-      strcat(led_path, device_name);
+      led_path = LED_ALL_PATH;
       break;
     default:
       fprintf(stderr, "Invalid LED\n");
