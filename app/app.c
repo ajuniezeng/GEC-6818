@@ -13,6 +13,10 @@ void start(void) {
 
   ui.draw_menu(&ui);
 
+  int led1 = 1;
+  int led2 = 1;
+  int led3 = 1;
+
   while (1) {
     enum MENU menu;
 
@@ -25,10 +29,6 @@ void start(void) {
     }
 
     printf("%d\n", menu);
-    int led1 = 0;
-    int led2 = 0;
-    int led3 = 0;
-    int beep = 0;
 
     if (menu == EXIT) {
       // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
@@ -71,13 +71,9 @@ void start(void) {
       }
     }
     if (TRUN_ON_SLASH_OFF_BEEP) {
-      if (!beep) {
-        beep_control(1);
-        beep = 1;
-      } else {
-        beep_control(0);
-        beep = 0;
-      }
+      beep_control(1);
+      sleep(1);
+      beep_control(0);
     }
   }
   ui.lcd.draw_background(&ui.lcd, BLACK);
