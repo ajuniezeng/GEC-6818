@@ -21,14 +21,33 @@ void start(void) {
     enum MENU menu;
 
     while (1) {
-      menu = select_menu(&ui.touch);
+      enum UiType current_ui = ui.current_ui;
+      
+      switch (current_ui) {
+        case SELECT_MENU_NONE:
+        menu = select_menu(&ui.touch);
+          break;
+        case SELECT_MENU_LED_CONTROL:
+          break;
+        case PROMPT_WINDOW:
+          break;
+        case SELECT_MENU_ABOUT_US:
+          break;
+        case SELECT_MENU_SMOKE_DETECTION:
+          break;
+        case SELECT_MENU_MOISTURE_DETECTION:
+          break;
+        default:
+          break;
+      }
+
       if (menu == INVALID)
         continue;
       else
         break;
     }
 
-    printf("%d\n", menu);
+    printf("menu = %d\n", menu);
 
     if (menu == EXIT) {
       // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
@@ -52,6 +71,7 @@ void start(void) {
         led1 = 0;
       }
     }
+
     if (menu == TURN_ON_SLASH_OFF_LED2) {
       if (!led2) {
         led_control(LED1, 1);
@@ -61,6 +81,7 @@ void start(void) {
         led2 = 0;
       }
     }
+
     if (menu == TURN_ON_SLASH_OFF_LED3) {
       if (!led3) {
         led_control(LED2, 1);
@@ -70,6 +91,7 @@ void start(void) {
         led3 = 0;
       }
     }
+
     if (menu == TRUN_ON_SLASH_OFF_BEEP) {
       beep_control(1);
       sleep(1);

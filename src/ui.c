@@ -109,7 +109,7 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
   }
 
   // Store current screen
-  // self->lcd.copy_to_buffer(&self->lcd);
+  self->lcd.copy_to_buffer(&self->lcd);
 
   // TO-DO: wrap the prompt text
   size_t prompt_length = length * 32;
@@ -160,6 +160,7 @@ void ui_new(struct Ui *self) {
   lcd_new(&self->lcd);
   touch_new(&self->touch);
   self->prompt_window_width = 0;
+  self->current_ui = SELECT_MENU_NONE;
 
   self->lcd.clear(&self->lcd);
   self->lcd.draw_background(&self->lcd, WHITE);
