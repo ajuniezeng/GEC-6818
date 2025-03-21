@@ -39,7 +39,7 @@ static void draw_menu_led_control(struct Ui *self) {
 
   self->current_ui = SELECT_MENU_LED_CONTROL;
   render_bmp(&self->lcd, "pic/led_control.bmp", 0, 0);
-  self->draw_time(self, 386, 581, BLACK, WHITE);
+  self->draw_time(self, 386, 587, BLACK, BACKGROUND);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
@@ -60,7 +60,7 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
   const size_t container_start_row = SCREEN_HEIGHT / 2 - 75;
   size_t container_start_column = SCREEN_WIDTH / 2 - (prompt_length + 10 + 25) / 2;
 
-  const size_t container_height = 150;
+  const size_t container_height = 180;
   size_t container_width = prompt_length + 10 + 25;
 
   const size_t prompt_start_row = container_start_row + 20;
@@ -149,7 +149,7 @@ static void draw_led_status(struct Ui *self, enum LED led, int value) {
     exit(EXIT_FAILURE);
   }
 
-  size_t start_column = 275;
+  size_t start_column = 280;
   size_t start_row;
   enum ZH_CH_CHARACTERS led_status = KAI;
 
