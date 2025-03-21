@@ -9,7 +9,7 @@
 
 #include "utils/font.h"
 #include "utils/lcd_control.h"
-#include "utils/led_control.h"
+#include "utils/module_control.h"
 #include "utils/render.h"
 
 static void draw_window(struct Ui *self, size_t height, size_t width, size_t row, size_t column,
@@ -39,7 +39,214 @@ static void draw_menu_led_control(struct Ui *self) {
 
   self->current_ui = SELECT_MENU_LED_CONTROL;
   render_bmp(&self->lcd, "pic/led_control.bmp", 0, 0);
-  self->draw_time(self, 386, 587, BLACK, BACKGROUND);
+  self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
+  self->draw_led_status(self, LED0, -1);
+}
+
+static void draw_led_status(struct Ui *self, enum LED led, int value) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  size_t start_row_1 = 130;
+  size_t start_row_2 = 207;
+  size_t start_row_3 = 284;
+  size_t start_row_4 = 361;
+  size_t start_column = 280;
+  size_t start_row;
+  enum ZH_CH_CHARACTERS led_status = KAI;
+
+  if (value == 1) {
+    led_status = KAI;
+  } else if (value == -1) {
+    led_status = KAI;
+    render_zh_cn_character(&self->lcd, led_status, start_row_1, start_column, BLACK, WHITE);
+    render_zh_cn_character(&self->lcd, led_status, start_row_2, start_column, BLACK, WHITE);
+    render_zh_cn_character(&self->lcd, led_status, start_row_3, start_column, BLACK, WHITE);
+    render_zh_cn_character(&self->lcd, led_status, start_row_4, start_column, BLACK, WHITE);
+    return;
+  } else {
+    led_status = GUAN;
+  }
+
+  switch (led) {
+    case LED0:
+      start_row = start_row_1;
+      break;
+    case LED1:
+      start_row = start_row_2;
+      break;
+    case LED2:
+      start_row = start_row_3;
+      break;
+    case LED3:
+      start_row = start_row_4;
+      break;
+    default:
+      fprintf(stderr, "Invalid LED\n");
+      return;
+  }
+
+  render_zh_cn_character(&self->lcd, led_status, start_row, start_column, BLACK, WHITE);
+}
+
+static void *temperature_update_worker(void *arg) {
+  struct TemperatureUpdateArgs *args = (struct TemperatureUpdateArgs *)arg;
+
+  while (args->running) {
+    pthread_mutex_lock(&temperature_mutex);
+
+    // Stop when switch to another UI
+    if (args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
+      args->running = 0;
+      pthread_mutex_unlock(&temperature_mutex);
+      return NULL;
+    }
+
+    int temperature = get_temperature(args->ui->gy_39_device);
+    char temperature_string[10];
+    snprintf(temperature_string, 10, "%d", temperature);
+
+    render_string(&args->ui->lcd, temperature_string, args->row, args->column, args->color,
+                  args->background_color);
+    render_zh_cn_character(&args->ui->lcd, CENTIGRADE, args->row,
+                           args->column + strlen(temperature_string) * 16, args->color,
+                           args->background_color);
+
+    pthread_mutex_unlock(&temperature_mutex);
+
+    // Update every 1 seconds
+    sleep(1);
+  }
+
+  return NULL;
+}
+
+static void draw_temperature_status(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Stop existing thread if it's running
+  if (temperature_update_args.running) {
+    pthread_mutex_lock(&temperature_mutex);
+    temperature_update_args.running = 0;
+    pthread_mutex_unlock(&temperature_mutex);
+    pthread_join(temperature_update_thread, NULL);
+  }
+
+  // Immediate first draw
+  size_t start_row = 125;
+  size_t start_column = 295;
+
+  set_mode_get_environment(self->gy_39_device);
+  sleep(1);
+  int temperature = get_temperature(self->gy_39_device);
+  char temperature_string[10];
+  snprintf(temperature_string, 10, "%d", temperature);
+
+  render_string(&self->lcd, temperature_string, start_row, start_column, BLACK, WHITE);
+  render_zh_cn_character(&self->lcd, CENTIGRADE, start_row, start_column + strlen(temperature_string) * 16,
+                         BLACK, WHITE);
+
+  // Set up thread arguments
+  temperature_update_args.ui = self;
+  temperature_update_args.row = start_row;
+  temperature_update_args.column = start_column;
+  temperature_update_args.color = BLACK;
+  temperature_update_args.background_color = WHITE;
+  temperature_update_args.running = 1;
+
+  // Create and start thread
+  if (pthread_create(&temperature_update_thread, NULL, temperature_update_worker, &temperature_update_args) !=
+      0) {
+    fprintf(stderr, "Failed to create temperature update thread\n");
+    return;
+  }
+}
+
+static void *humidity_update_worker(void *arg) {
+  struct HumidityUpdateArgs *humidity_args = (struct HumidityUpdateArgs *)arg;
+
+  while (humidity_args->running) {
+    pthread_mutex_lock(&humidity_mutex);
+
+    // Stop when switch to another UI
+    if (humidity_args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
+      humidity_args->running = 0;
+      pthread_mutex_unlock(&humidity_mutex);
+      return NULL;
+    }
+
+    int humidity = get_humidity(humidity_args->ui->gy_39_device);
+    char humidity_string[10];
+    snprintf(humidity_string, 10, "%d%%", humidity);
+
+    render_string(&humidity_args->ui->lcd, humidity_string, humidity_args->row, humidity_args->column,
+                  humidity_args->color, humidity_args->background_color);
+    pthread_mutex_unlock(&humidity_mutex);
+
+    // Update every 1 seconds
+    sleep(1);
+  }
+
+  return NULL;
+}
+
+static void draw_humidity_status(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Stop existing thread if it's running
+  if (humidity_update_args.running) {
+    pthread_mutex_lock(&humidity_mutex);
+    humidity_update_args.running = 0;
+    pthread_mutex_unlock(&humidity_mutex);
+    pthread_join(humidity_update_thread, NULL);
+  }
+
+  // Immediate first draw
+  size_t start_row = 202;
+  size_t start_column = 295;
+
+  set_mode_get_environment(self->gy_39_device);
+  sleep(1);
+  int humidity = get_humidity(self->gy_39_device);
+  char humidity_string[10];
+  snprintf(humidity_string, 10, "%d%%", humidity);
+
+  render_string(&self->lcd, humidity_string, start_row, start_column, BLACK, WHITE);
+
+  // Set up thread arguments
+  humidity_update_args.ui = self;
+  humidity_update_args.row = start_row;
+  humidity_update_args.column = start_column;
+  humidity_update_args.color = BLACK;
+  humidity_update_args.background_color = WHITE;
+  humidity_update_args.running = 1;
+
+  // Create and start thread
+  if (pthread_create(&humidity_update_thread, NULL, humidity_update_worker, &humidity_update_args) != 0) {
+    fprintf(stderr, "Failed to create humidity update thread\n");
+    return;
+  }
+}
+
+static void draw_menu_temperature_humidity_detection(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  self->current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
+  render_bmp(&self->lcd, "pic/temperature_humidity_detection.bmp", 0, 0);
+  self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
+  draw_temperature_status(self);
+  draw_humidity_status(self);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
@@ -53,6 +260,7 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
   pthread_mutex_unlock(&time_mutex);
   pthread_join(time_update_thread, NULL);
 
+  self->previous_ui = self->current_ui;
   self->current_ui = PROMPT_WINDOW;
 
   // TO-DO: wrap the prompt text
@@ -143,43 +351,6 @@ static void draw_time(struct Ui *self, size_t row, size_t column, enum COLOR col
   }
 }
 
-static void draw_led_status(struct Ui *self, enum LED led, int value) {
-  if (self == NULL) {
-    fprintf(stderr, "UI is uninitialized\n");
-    exit(EXIT_FAILURE);
-  }
-
-  size_t start_column = 280;
-  size_t start_row;
-  enum ZH_CH_CHARACTERS led_status = KAI;
-
-  if (value == 1) {
-    led_status = KAI;
-  } else {
-    led_status = GUAN;
-  }
-
-  switch (led) {
-    case LED0:
-      start_row = 130;
-      break;
-    case LED1:
-      start_row = 207;
-      break;
-    case LED2:
-      start_row = 284;
-      break;
-    case LED3:
-      start_row = 361;
-      break;
-    default:
-      fprintf(stderr, "Invalid LED\n");
-      return;
-  }
-
-  render_zh_cn_character(&self->lcd, led_status, start_row, start_column, BLACK, WHITE);
-}
-
 void ui_new(struct Ui *self) {
   if (self == NULL) {
     fprintf(stderr, "UI constructs on NULL\n");
@@ -191,6 +362,7 @@ void ui_new(struct Ui *self) {
   self->prompt_window_width = 0;
   self->current_ui = SELECT_MENU_LED_CONTROL;
   self->previous_ui = SELECT_MENU_LED_CONTROL;
+  self->gy_39_device = uart_init(CON2_PATH);
 
   self->lcd.clear(&self->lcd);
   self->lcd.draw_background(&self->lcd, WHITE);
@@ -200,6 +372,9 @@ void ui_new(struct Ui *self) {
   self->draw_menu_led_control = draw_menu_led_control;
   self->draw_prompt_window = draw_prompt_window;
   self->draw_led_status = draw_led_status;
+  self->draw_temperature_status = draw_temperature_status;
+  self->draw_humidity_status = draw_humidity_status;
+  self->draw_menu_temperature_humidity_detection = draw_menu_temperature_humidity_detection;
 }
 
 void ui_destructor(struct Ui *self) {
@@ -216,6 +391,15 @@ void ui_destructor(struct Ui *self) {
     pthread_join(time_update_thread, NULL);
   }
 
+  // Stop temperature update thread if running
+  if (temperature_update_args.running) {
+    pthread_mutex_lock(&temperature_mutex);
+    temperature_update_args.running = 0;
+    pthread_mutex_unlock(&temperature_mutex);
+    pthread_join(temperature_update_thread, NULL);
+  }
+
+  close(self->gy_39_device);
   touch_destructor(&self->touch);
   lcd_destructor(&self->lcd);
 }

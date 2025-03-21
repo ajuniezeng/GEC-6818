@@ -43,7 +43,7 @@ int uart_init(const char *device_path) {
   return uart_fd;
 }
 
-int set_mode_get_brightness(int device) {
+int set_mode_get_illuminance(int device) {
   if (write(device, command_get_brightness, 3) == -1) {
     perror("Failed to write command");
     return -1;

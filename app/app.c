@@ -11,31 +11,35 @@ void start(void) {
   struct Ui ui;
   ui_new(&ui);
 
-  ui.draw_menu_led_control(&ui);
-
+  
   int led0 = 1;
   int led1 = 1;
   int led2 = 1;
   int led3 = 1;
-
+  
   while (1) {
     enum MENU menu;
-
+    
     while (1) {
       enum UiType current_ui = ui.current_ui;
-
+      
       switch (current_ui) {
         case SELECT_MENU_LED_CONTROL:
+        ui.draw_menu_led_control(&ui);
           menu = select_menu_led_control(&ui.touch);
           break;
         case PROMPT_WINDOW:
           menu = prompt_window(&ui);
           break;
-        case SELECT_MENU_SMOKE_DETECTION:
-          break;
-        case SELECT_MENU_MOISTURE_DETECTION:
+        // case SELECT_MENU_SMOKE_DETECTION:
+        // 
+        //   break;
+        case SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION:
+          ui.draw_menu_temperature_humidity_detection(&ui);
+          menu = select_menu_main_options(&ui.touch);
           break;
         default:
+          menu = INVALID;
           break;
       }
 
@@ -117,7 +121,7 @@ void start(void) {
       continue;
     }
   }
-  
+
   ui.lcd.draw_background(&ui.lcd, BLACK);
   ui_destructor(&ui);
 }

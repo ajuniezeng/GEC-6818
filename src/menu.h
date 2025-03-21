@@ -19,3 +19,4 @@ enum MENU {
 
 enum MENU select_menu_led_control(struct Touch *touch);
 enum MENU prompt_window(struct Ui *ui);
+enum MENU select_menu_main_options(struct Touch *touch);

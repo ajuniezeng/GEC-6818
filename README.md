@@ -1,6 +1,6 @@
 # Cross Compile Example
 
-To Cross Compile, you need to install `zig`.
+To Cross Compile, you need to install [`zig`](https://ziglang.org/download/).
 
 ``` 
 zig build
