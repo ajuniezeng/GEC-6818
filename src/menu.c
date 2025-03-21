@@ -1,53 +1,37 @@
 #include "menu.h"
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-enum MENU select_menu(struct Touch *touch) {
-  enum MOVE type;
+#include "utils/lcd_control.h"
 
-  while ((type = touch->get_move(touch)) != TAP) continue;
+enum MENU check_main_menu_option(size_t x, size_t y) {
+  // Main menu options
+  if (x >= 577 && x <= 737) {
+    if (y >= 61 && y <= 119) {
+      return LIGHT_CONTROL;
+    }
 
-  size_t x = abs(touch->x);
-  size_t y = abs(touch->y);
+    if (y >= 199 && y <= 257) {
+      return SMOKE_DETECTION;
+    }
 
-  printf("(x = %lu, y = %lu)\n", x, y);
-
-  // && touch->y >= 30 && touch->y <= 330
-  if (x >= 550 && x <= 760) {
-    if (y >= 260 && y <= 318) {
+    if (y >= 268 && y <= 326) {
       return EXIT;
     }
   }
 
-  if (x >= 550 && x <= 760) {
-    if (y >= 50 && y <= 88) {
-      return TURN_ON_SLASH_OFF_LED1;
-    }
-  }
-
-  if (x >= 550 && x <= 760) {
-    if (y >= 98 && y <= 136) {
-      return TURN_ON_SLASH_OFF_LED2;
-    }
-  }
-
-  if (x >= 550 && x <= 760) {
-    if (y >= 146 && y <= 184) {
-      return TURN_ON_SLASH_OFF_LED3;
-    }
-  }
-
-  if (x >= 550 && x <= 760) {
-    if (y >= 194 && y <= 232) {
-      return TRUN_ON_SLASH_OFF_BEEP;
+  if (x >= 567 && x <= 747) {
+    if (y >= 130 && y <= 188) {
+      return TEMPERATURE_AND_HUMIDITY_DETECTION;
     }
   }
 
   return INVALID;
 }
 
-enum MENU prompt_window(struct Touch *touch) {
+enum MENU select_menu_led_control(struct Touch *touch) {
   enum MOVE type;
 
   while ((type = touch->get_move(touch)) != TAP) continue;
@@ -57,10 +41,45 @@ enum MENU prompt_window(struct Touch *touch) {
 
   printf("(x = %lu, y = %lu)\n", x, y);
 
-  if (x >= 200 && x <= 600) {
-    if (y >= 200 && y <= 280) {
-      return EXIT;
-    }
+  enum MENU main_option = check_main_menu_option(x, y);
+
+  if (main_option != INVALID) {
+    return main_option;
+  }
+
+  if (x >= 77 && x <= 326) {
+    if (y >= 120 && y <= 178) return SELECT_LED0;
+    if (y >= 197 && y <= 255) return SELECT_LED1;
+    if (y >= 274 && y <= 332) return SELECT_LED2;
+    if (y >= 351 && y <= 409) return SELECT_LED2;
+  }
+  return INVALID;
+}
+
+enum MENU prompt_window(struct Ui *ui) {
+  struct Touch *touch = &ui->touch;
+  size_t prompt_window_width = ui->prompt_window_width;
+  enum MOVE type;
+
+  while ((type = touch->get_move(touch)) != TAP) continue;
+
+  size_t x = abs(touch->x);
+  size_t y = abs(touch->y);
+
+  printf("(x = %lu, y = %lu)\n", x, y);
+
+  const size_t row = 165;
+  const size_t height = 32 + 6;
+  size_t yes_column_start = SCREEN_WIDTH / 2 - (prompt_window_width / 2);
+  size_t yes_column_end = yes_column_start + prompt_window_width / 2;
+  size_t no_column_end = yes_column_end + prompt_window_width / 2;
+
+  if (x >= yes_column_start && x <= yes_column_end && y >= row && y <= row + height) {
+    return YES;
+  }
+
+  if (x >= yes_column_end && x <= no_column_end && y >= row && y <= row + height) {
+    return CANCEL;
   }
 
   return INVALID;

@@ -1,17 +1,21 @@
 #pragma once
 
+#include "ui.h"
 #include "utils/touch.h"
 
 enum MENU {
   INVALID,
   YES,
   CANCEL,
-  TURN_ON_SLASH_OFF_LED1,
-  TURN_ON_SLASH_OFF_LED2,
-  TURN_ON_SLASH_OFF_LED3,
-  TRUN_ON_SLASH_OFF_BEEP,
+  LIGHT_CONTROL,
+  TEMPERATURE_AND_HUMIDITY_DETECTION,
+  SMOKE_DETECTION,
+  SELECT_LED0,
+  SELECT_LED1,
+  SELECT_LED2,
+  SELECT_LED3,
   EXIT,
-  ABOUT,
 };
 
-enum MENU select_menu(struct Touch *touch);
+enum MENU select_menu_led_control(struct Touch *touch);
+enum MENU prompt_window(struct Ui *ui);

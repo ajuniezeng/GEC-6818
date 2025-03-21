@@ -11,8 +11,9 @@ void start(void) {
   struct Ui ui;
   ui_new(&ui);
 
-  ui.draw_menu(&ui);
+  ui.draw_menu_led_control(&ui);
 
+  int led0 = 1;
   int led1 = 1;
   int led2 = 1;
   int led3 = 1;
@@ -22,16 +23,13 @@ void start(void) {
 
     while (1) {
       enum UiType current_ui = ui.current_ui;
-      
+
       switch (current_ui) {
-        case SELECT_MENU_NONE:
-        menu = select_menu(&ui.touch);
-          break;
         case SELECT_MENU_LED_CONTROL:
+          menu = select_menu_led_control(&ui.touch);
           break;
         case PROMPT_WINDOW:
-          break;
-        case SELECT_MENU_ABOUT_US:
+          menu = prompt_window(&ui);
           break;
         case SELECT_MENU_SMOKE_DETECTION:
           break;
@@ -50,54 +48,76 @@ void start(void) {
     printf("menu = %d\n", menu);
 
     if (menu == EXIT) {
-      // enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
-      // ui.draw_prompt_window(&ui, prompt, 8);
-      led_control(LED_ALL, 0);
-      sleep(1);
-      beep_control(1);
-      sleep(1);
-      beep_control(0);
-      sleep(1);
-      led_control(LED_ALL, 1);
+      enum ZH_CH_CHARACTERS prompt[] = {YOU, QUE, DING, WANT, TUI, CHU, MA, QUESTION};
+      ui.draw_prompt_window(&ui, prompt, 8);
+      continue;
+    }
+
+    if (menu == YES) {
       break;
     }
 
-    if (menu == TURN_ON_SLASH_OFF_LED1) {
-      if (!led1) {
+    if (menu == CANCEL) {
+      switch (ui.previous_ui) {
+        case SELECT_MENU_LED_CONTROL:
+          ui.current_ui = SELECT_MENU_LED_CONTROL;
+          break;
+        default:
+          perror("Invalid previous UI");
+          break;
+      }
+      break;
+    }
+
+    if (menu == SELECT_LED0) {
+      if (!led0) {
         led_control(LED0, 1);
-        led1 = 1;
+        led0 = 1;
       } else {
         led_control(LED0, 0);
-        led1 = 0;
+        led0 = 0;
       }
+      ui.draw_led_status(&ui, LED0, led0);
+      continue;
     }
 
-    if (menu == TURN_ON_SLASH_OFF_LED2) {
-      if (!led2) {
+    if (menu == SELECT_LED1) {
+      if (!led1) {
         led_control(LED1, 1);
-        led2 = 1;
+        led1 = 1;
       } else {
         led_control(LED1, 0);
-        led2 = 0;
+        led1 = 0;
       }
+      ui.draw_led_status(&ui, LED1, led1);
+      continue;
     }
 
-    if (menu == TURN_ON_SLASH_OFF_LED3) {
-      if (!led3) {
+    if (menu == SELECT_LED2) {
+      if (!led2) {
         led_control(LED2, 1);
-        led3 = 1;
+        led2 = 1;
       } else {
         led_control(LED2, 0);
-        led3 = 0;
+        led2 = 0;
       }
+      ui.draw_led_status(&ui, LED2, led2);
+      continue;
     }
 
-    if (menu == TRUN_ON_SLASH_OFF_BEEP) {
-      beep_control(1);
-      sleep(1);
-      beep_control(0);
+    if (menu == SELECT_LED3) {
+      if (!led3) {
+        led_control(LED3, 1);
+        led3 = 1;
+      } else {
+        led_control(LED3, 0);
+        led3 = 0;
+      }
+      ui.draw_led_status(&ui, LED3, led3);
+      continue;
     }
   }
+  
   ui.lcd.draw_background(&ui.lcd, BLACK);
   ui_destructor(&ui);
 }

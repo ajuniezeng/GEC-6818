@@ -1,6 +1,7 @@
+#include "lcd_control.h"
+
 #include <stddef.h>
 #include <stdint.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,16 +9,13 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "lcd_control.h"
-
 static void clear(struct LCD *self) {
-  if (self == NULL || self->address == NULL || self->address_buffer == NULL) {
+  if (self == NULL || self->address == NULL) {
     fprintf(stderr, "LCD is uninitialized\n");
     exit(EXIT_FAILURE);
   }
 
   memset(self->address, 0x00, SCREEN_BYTES);
-  self->address_buffer = malloc(SCREEN_BYTES);
 }
 
 static void draw_pixel(struct LCD *self, size_t height, size_t width, enum COLOR color) {
@@ -49,24 +47,6 @@ static void draw_background(struct LCD *self, enum COLOR color) {
   self->background_color = color;
 }
 
-static void copy_to_buffer(struct LCD *self) {
-  if (self == NULL || self->address == NULL || self->address_buffer == NULL) {
-    fprintf(stderr, "LCD is uninitialized\n");
-    exit(EXIT_FAILURE);
-  }
-
-  memcpy(self->address_buffer, self->address, SCREEN_BYTES);
-}
-
-static void restore_from_buffer(struct LCD *self) {
-  if (self == NULL || self->address == NULL || self->address_buffer == NULL) {
-    fprintf(stderr, "LCD is uninitialized\n");
-    exit(EXIT_FAILURE);
-  }
-
-  memcpy(self->address, self->address_buffer, SCREEN_BYTES);
-}
-
 void lcd_new(struct LCD *self) {
   if (self == NULL) {
     fprintf(stderr, "LCD constructs on NULL\n");
@@ -88,24 +68,19 @@ void lcd_new(struct LCD *self) {
   self->clear = clear;
   self->draw_pixel = draw_pixel;
   self->draw_background = draw_background;
-  self->copy_to_buffer = copy_to_buffer;
-  self->restore_from_buffer = restore_from_buffer;
 }
 
 void lcd_destructor(struct LCD *self) {
-  if (self == NULL || self->device == -1 || self->address == NULL || self->address_buffer == NULL) {
+  if (self == NULL || self->device == -1 || self->address == NULL) {
     fprintf(stderr, "LCD double freed\n");
     exit(EXIT_FAILURE);
   }
 
   close(self->device);
   munmap(self->address, SCREEN_BYTES);
-  // munmap(self->address_buffer, SCREEN_BYTES);
-  free(self->address_buffer);
 
   self->device = -1;
   self->address = NULL;
-  self->address_buffer = NULL;
 }
 
 void draw_pixel_memory(uint32_t *addr, size_t row, size_t column, uint32_t color) {

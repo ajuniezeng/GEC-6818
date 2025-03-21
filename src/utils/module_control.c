@@ -91,9 +91,9 @@ int get_temperature(int device) {
     return -1;
   }
 
-  uint8_t response[14] = {0};
+  uint8_t response[15] = {0};
 
-  if (read(device, response, sizeof(response)) == 9) {
+  if (read(device, response, sizeof(response)) == 15) {
     // response[2] should be 0x45
     if (response[2] != 0x45) {
       fprintf(stderr, "Please set the mode to get environment\n");
@@ -115,9 +115,9 @@ int get_atmospheric_pressure(int device) {
     return -1;
   }
 
-  uint8_t response[14] = {0};
+  uint8_t response[15] = {0};
 
-  if (read(device, response, sizeof(response)) == 9) {
+  if (read(device, response, sizeof(response)) == 15) {
     // response[2] should be 0x45
     if (response[2] != 0x45) {
       fprintf(stderr, "Please set the mode to get environment\n");
@@ -139,9 +139,9 @@ int get_humidity(int device) {
     return -1;
   }
 
-  uint8_t response[14] = {0};
+  uint8_t response[15] = {0};
 
-  if (read(device, response, sizeof(response)) == 9) {
+  if (read(device, response, sizeof(response)) == 15) {
     // response[2] should be 0x45
     if (response[2] != 0x45) {
       fprintf(stderr, "Please set the mode to get environment\n");
@@ -163,9 +163,9 @@ int get_altitude(int device) {
     return -1;
   }
 
-  uint8_t response[14] = {0};
+  uint8_t response[15] = {0};
 
-  if (read(device, response, sizeof(response)) == 9) {
+  if (read(device, response, sizeof(response)) == 15) {
     // response[2] should be 0x45
     if (response[2] != 0x45) {
       fprintf(stderr, "Please set the mode to get environment\n");
@@ -174,6 +174,25 @@ int get_altitude(int device) {
 
     int altitude = response[12] << 8 | response[13];
     return altitude;
+  } else {
+    perror("Failed to read response");
+    return -1;
+  }
+}
+
+int get_smoke_concentration(int device) {
+  if (device == -1) {
+    perror("Failed to open device");
+    return -1;
+  }
+
+  uint8_t response[9] = {0};
+
+  write(device, command_get_smoke_concentration, 9);
+
+  if (read(device, response, sizeof(response)) == 9) {
+    int smoke_concentration = response[2] | response[3];
+    return smoke_concentration;
   } else {
     perror("Failed to read response");
     return -1;

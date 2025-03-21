@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "utils/font.h"
 #include "utils/lcd_control.h"
+#include "utils/led_control.h"
 #include "utils/render.h"
 
 static void draw_window(struct Ui *self, size_t height, size_t width, size_t row, size_t column,
@@ -29,77 +31,15 @@ static void draw_window(struct Ui *self, size_t height, size_t width, size_t row
   }
 }
 
-static void draw_menu(struct Ui *self) {
+static void draw_menu_led_control(struct Ui *self) {
   if (self == NULL) {
     fprintf(stderr, "UI is uninitialized\n");
     exit(EXIT_FAILURE);
   }
 
-  enum ZH_CH_CHARACTERS title[] = {ZHI,  NENG, SHENG, CHAN,  CHE, JIAN, HUAN,
-                                   JING, SHU,  JU,    JIAN2, CE,  XI,   TONG};
-  render_zh_cn_string(&self->lcd, title, 14, 30, 40, BLACK, self->lcd.background_color);
-
-  self->draw_window(self, 360, 480, 90, 40, BLACK, SLATE_GRAY);
-  self->draw_window(self, 300, 205, 30, 555, BLACK, SLATE_GRAY);
-  self->draw_window(self, 100, 205, 350, 555, BLACK, SLATE_GRAY);
-
-  self->draw_time(self, 391, 565, BLACK, SLATE_GRAY);
-  const enum ZH_CH_CHARACTERS command_CN[] = {KAI, SLASH, GUAN};
-  const enum ZH_CH_CHARACTERS command_exit_CN[] = {TUI, CHU};
-
-  const size_t command_1_start_row = 50;
-  const size_t command_1_start_column = 587;
-  const char command_1_ASICC[] = "LED1";
-
-  const size_t command_2_start_row = 98;
-  const size_t command_2_start_column = 587;
-  const char command_2_ASICC[] = "LED2";
-
-  const size_t command_3_start_row = 146;
-  const size_t command_3_start_column = 587;
-  const char command_3_ASICC[] = "LED3";
-
-  const size_t command_4_start_row = 194;
-  const size_t command_4_start_column = 587;
-  const char command_4_ASICC[] = "BEEP";
-
-  const size_t exit_command_start_row = 270;
-  const size_t exit_command_start_column = 625;
-
-  render_zh_cn_string(&self->lcd, command_CN, 3, command_1_start_row, command_1_start_column, BLACK,
-                      SLATE_GRAY);
-  render_string(&self->lcd, command_1_ASICC, command_1_start_row, command_1_start_column + 32 * 3, BLACK,
-                SLATE_GRAY);
-
-  render_zh_cn_string(&self->lcd, command_CN, 3, command_2_start_row, command_2_start_column, BLACK,
-                      SLATE_GRAY);
-  render_string(&self->lcd, command_2_ASICC, command_2_start_row, command_2_start_column + 32 * 3, BLACK,
-                SLATE_GRAY);
-
-  render_zh_cn_string(&self->lcd, command_CN, 3, command_3_start_row, command_3_start_column, BLACK,
-                      SLATE_GRAY);
-  render_string(&self->lcd, command_3_ASICC, command_3_start_row, command_3_start_column + 32 * 3, BLACK,
-                SLATE_GRAY);
-
-  render_zh_cn_string(&self->lcd, command_CN, 3, command_4_start_row, command_4_start_column, BLACK,
-                      SLATE_GRAY);
-  render_string(&self->lcd, command_4_ASICC, command_4_start_row, command_4_start_column + 32 * 3, BLACK,
-                SLATE_GRAY);
-
-  render_zh_cn_string(&self->lcd, command_exit_CN, 2, exit_command_start_row, exit_command_start_column, RED,
-                      SLATE_GRAY);
-}
-
-static void draw_about_us(struct Ui *self) {
-  render_string(&self->lcd, "By", 340, 420, BLACK, self->lcd.background_color);
-  enum ZH_CH_CHARACTERS name_0[] = {ZENG, QING, JIE};
-  render_zh_cn_string(&self->lcd, name_0, 3, 340, 460, BLACK, self->lcd.background_color);
-  render_string(&self->lcd, "20220440333", 340, 560, BLACK, self->lcd.background_color);
-
-  enum ZH_CH_CHARACTERS name_1[] = {WEN, JIA, JUN};
-  render_zh_cn_string(&self->lcd, name_1, 3, 380, 460, BLACK, self->lcd.background_color);
-  render_string(&self->lcd, "20220440333", 380, 560, BLACK, self->lcd.background_color);
-  // TO-DO: display about us in the display panel
+  self->current_ui = SELECT_MENU_LED_CONTROL;
+  render_bmp(&self->lcd, "pic/led_control.bmp", 0, 0);
+  self->draw_time(self, 386, 581, BLACK, WHITE);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
@@ -107,9 +47,13 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
     fprintf(stderr, "UI is uninitialized\n");
     exit(EXIT_FAILURE);
   }
+  // Pause Time Update Thread
+  pthread_mutex_lock(&time_mutex);
+  time_update_args.running = 0;
+  pthread_mutex_unlock(&time_mutex);
+  pthread_join(time_update_thread, NULL);
 
-  // Store current screen
-  self->lcd.copy_to_buffer(&self->lcd);
+  self->current_ui = PROMPT_WINDOW;
 
   // TO-DO: wrap the prompt text
   size_t prompt_length = length * 32;
@@ -128,11 +72,36 @@ static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, s
   const size_t no_start_row = container_start_row + 130;
   size_t no_start_column = container_start_column + container_width / 2 + container_width / 4 - 16;
 
+  self->prompt_window_width = container_width;
+
   self->draw_window(self, container_height, container_width, container_start_row, container_start_column,
                     BLACK, STONE_300);
   render_zh_cn_string(&self->lcd, prompt, length, prompt_start_row, prompt_start_column, BLACK, STONE_300);
   render_zh_cn_character(&self->lcd, JA, yes_start_row, yes_start_column, RED, STONE_300);
   render_zh_cn_character(&self->lcd, NEIN, no_start_row, no_start_column, BLACK, STONE_300);
+}
+
+static void *time_update_worker(void *arg) {
+  struct TimeUpdateArgs *args = (struct TimeUpdateArgs *)arg;
+
+  while (args->running) {
+    pthread_mutex_lock(&time_mutex);
+
+    time_t current_time = time(NULL);
+    struct tm *time_info = localtime(&current_time);
+
+    char time_string[12];
+    strftime(time_string, 12, "%H:%M:%S", time_info);
+
+    render_string(&args->ui->lcd, time_string, args->row, args->column, args->color, args->background_color);
+
+    pthread_mutex_unlock(&time_mutex);
+
+    // Update every second
+    sleep(1);
+  }
+
+  return NULL;
 }
 
 static void draw_time(struct Ui *self, size_t row, size_t column, enum COLOR color,
@@ -142,13 +111,73 @@ static void draw_time(struct Ui *self, size_t row, size_t column, enum COLOR col
     exit(EXIT_FAILURE);
   }
 
+  // Stop existing thread if it's running
+  if (time_update_args.running) {
+    pthread_mutex_lock(&time_mutex);
+    time_update_args.running = 0;
+    pthread_mutex_unlock(&time_mutex);
+    pthread_join(time_update_thread, NULL);
+  }
+
+  // Immediate first draw
   time_t current_time = time(NULL);
   struct tm *time_info = localtime(&current_time);
 
   char time_string[12];
-  strftime(time_string, 12, "%Y/%m/%d", time_info);
+  strftime(time_string, 12, "%H/%M/%S", time_info);
 
   render_string(&self->lcd, time_string, row, column, color, background_color);
+
+  // Set up thread arguments
+  time_update_args.ui = self;
+  time_update_args.row = row;
+  time_update_args.column = column;
+  time_update_args.color = color;
+  time_update_args.background_color = background_color;
+  time_update_args.running = 1;
+
+  // Create and start thread
+  if (pthread_create(&time_update_thread, NULL, time_update_worker, &time_update_args) != 0) {
+    fprintf(stderr, "Failed to create time update thread\n");
+    return;
+  }
+}
+
+static void draw_led_status(struct Ui *self, enum LED led, int value) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  size_t start_column = 275;
+  size_t start_row;
+  enum ZH_CH_CHARACTERS led_status = KAI;
+
+  if (value == 1) {
+    led_status = KAI;
+  } else {
+    led_status = GUAN;
+  }
+
+  switch (led) {
+    case LED0:
+      start_row = 130;
+      break;
+    case LED1:
+      start_row = 207;
+      break;
+    case LED2:
+      start_row = 284;
+      break;
+    case LED3:
+      start_row = 361;
+      break;
+    default:
+      fprintf(stderr, "Invalid LED\n");
+      return;
+  }
+
+  render_zh_cn_character(&self->lcd, led_status, start_row, start_column, BLACK, WHITE);
 }
 
 void ui_new(struct Ui *self) {
@@ -160,22 +189,31 @@ void ui_new(struct Ui *self) {
   lcd_new(&self->lcd);
   touch_new(&self->touch);
   self->prompt_window_width = 0;
-  self->current_ui = SELECT_MENU_NONE;
+  self->current_ui = SELECT_MENU_LED_CONTROL;
+  self->previous_ui = SELECT_MENU_LED_CONTROL;
 
   self->lcd.clear(&self->lcd);
   self->lcd.draw_background(&self->lcd, WHITE);
 
   self->draw_window = draw_window;
   self->draw_time = draw_time;
-  self->draw_menu = draw_menu;
-  self->draw_about_us = draw_about_us;
+  self->draw_menu_led_control = draw_menu_led_control;
   self->draw_prompt_window = draw_prompt_window;
+  self->draw_led_status = draw_led_status;
 }
 
 void ui_destructor(struct Ui *self) {
   if (self == NULL) {
     fprintf(stderr, "UI destructs on NULL\n");
     exit(EXIT_FAILURE);
+  }
+
+  // Stop time update thread if running
+  if (time_update_args.running) {
+    pthread_mutex_lock(&time_mutex);
+    time_update_args.running = 0;
+    pthread_mutex_unlock(&time_mutex);
+    pthread_join(time_update_thread, NULL);
   }
 
   touch_destructor(&self->touch);
