@@ -56,7 +56,7 @@ static void draw_led_status(struct Ui *self, enum LED led, int value) {
   size_t start_row_2 = 207;
   size_t start_row_3 = 284;
   size_t start_row_4 = 361;
-  size_t start_column = 280;
+  size_t start_column = 290;
   size_t start_row;
   enum ZH_CH_CHARACTERS led_status = KAI;
 
@@ -381,10 +381,6 @@ static void *smoke_threshold_update_worker(void *arg) {
                   smoke_threshold_args->background_color);
 
     pthread_mutex_unlock(&smoke_threshold_mutex);
-
-    // Update every 0.5 second
-    struct timespec req = {0, 500000000};  // 0.5 seconds
-    nanosleep(&req, NULL);
   }
 
   return NULL;
