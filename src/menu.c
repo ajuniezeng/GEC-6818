@@ -67,6 +67,11 @@ enum MENU select_menu_temperature_humidity_detection(struct Ui *ui) {
   enum MOVE type;
   struct Touch *touch = &ui->touch;
 
+  if (ui->need_redraw) {
+    ui->draw_menu_temperature_humidity_detection(ui);
+    ui->need_redraw = 0;
+  }
+
   while ((type = touch->get_move(touch)) != TAP) continue;
 
   size_t x = abs(touch->x);
@@ -87,6 +92,11 @@ enum MENU select_menu_temperature_humidity_detection(struct Ui *ui) {
 enum MENU select_menu_smoke_detection(struct Ui *ui) {
   enum MOVE type;
   struct Touch *touch = &ui->touch;
+
+  if (ui->need_redraw) {
+    ui->draw_menu_smoke_detection(ui);
+    ui->need_redraw = 0;
+  }
 
   while ((type = touch->get_move(touch)) != TAP) continue;
 
