@@ -147,8 +147,6 @@ static void draw_temperature_status(struct Ui *self) {
   size_t start_row = 130;
   size_t start_column = 300;
 
-  set_mode_get_environment(self->gy_39_device);
-  sleep(1);
   int temperature = get_temperature(self->gy_39_device);
   temperature = temperature == -1 ? 0 : temperature;
   char temperature_string[10];
@@ -225,8 +223,6 @@ static void draw_humidity_status(struct Ui *self) {
   size_t start_row = 208;
   size_t start_column = 300;
 
-  set_mode_get_environment(self->gy_39_device);
-  sleep(1);
   int humidity = get_humidity(self->gy_39_device);
   humidity = humidity == -1 ? 0 : humidity;
   char humidity_string[10];
@@ -260,6 +256,7 @@ static void draw_menu_temperature_humidity_detection(struct Ui *self) {
   self->current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
   render_bmp(&self->lcd, "pic/temperature_humidity_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
+  set_mode_get_environment(self->gy_39_device);
   self->draw_temperature_status(self);
   self->draw_humidity_status(self);
 }
