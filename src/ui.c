@@ -280,7 +280,7 @@ static void *smoke_update_worker(void *arg) {
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
 
-    if (smoke_concentration >= 190) {
+    if (smoke_concentration >= SMOKE_CONCENTRATION_THRESHOLD) {
       beep_control(1);
       sleep(1);
       beep_control(0);
@@ -320,7 +320,7 @@ static void draw_smoke_status(struct Ui *self) {
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
 
-  if (smoke_concentration >= 190) {
+  if (smoke_concentration >= SMOKE_CONCENTRATION_THRESHOLD) {
     beep_control(1);
     sleep(1);
     beep_control(0);
