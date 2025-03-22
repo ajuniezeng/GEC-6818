@@ -104,7 +104,6 @@ static void *temperature_update_worker(void *arg) {
     if (args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       args->running = 0;
       pthread_mutex_unlock(&temperature_mutex);
-      pthread_join(temperature_update_thread, NULL);
       return NULL;
     }
 
@@ -177,13 +176,12 @@ static void *humidity_update_worker(void *arg) {
   struct HumidityUpdateArgs *humidity_args = (struct HumidityUpdateArgs *)arg;
 
   while (humidity_args->running) {
-    pthread_mutex_lock(&temperature_mutex);
+    pthread_mutex_lock(&humidity_mutex);
 
     // Stop when switch to another UI
     if (humidity_args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       humidity_args->running = 0;
-      pthread_mutex_unlock(&temperature_mutex);
-      pthread_join(humidity_update_thread, NULL);
+      pthread_mutex_unlock(&humidity_mutex);
       return NULL;
     }
 
@@ -271,7 +269,6 @@ static void *smoke_update_worker(void *arg) {
     if (smoke_args->ui->current_ui != SELECT_MENU_SMOKE_DETECTION) {
       smoke_args->running = 0;
       pthread_mutex_unlock(&smoke_mutex);
-      pthread_join(smoke_update_thread, NULL);
       return NULL;
     }
 
