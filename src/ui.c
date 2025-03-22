@@ -118,7 +118,7 @@ static void *temperature_update_worker(void *arg) {
 
     render_string(&args->ui->lcd, temperature_string, args->row, args->column, args->color,
                   args->background_color);
-    render_zh_cn_character(&args->ui->lcd, CENTIGRADE, args->row,
+    render_zh_cn_character(&args->ui->lcd, CENTIGRADE, args->row - 5,
                            args->column + strlen(temperature_string) * 16, args->color,
                            args->background_color);
 
@@ -401,7 +401,7 @@ static void draw_smoke_threshold(struct Ui *self) {
   }
 
   // Immediate first draw
-  size_t threshold_start_row = 375;
+  size_t threshold_start_row = 380;
   size_t threshold_start_column = 385;
 
   char threshold_string[4];
