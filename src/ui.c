@@ -381,6 +381,9 @@ static void *smoke_threshold_update_worker(void *arg) {
                   smoke_threshold_args->background_color);
 
     pthread_mutex_unlock(&smoke_threshold_mutex);
+
+    // Update every 0.5 second
+    usleep(500000);
   }
 
   return NULL;
