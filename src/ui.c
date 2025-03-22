@@ -107,7 +107,8 @@ static void *temperature_update_worker(void *arg) {
       return NULL;
     }
 
-    int temperature = get_temperature(args->ui->gy_39_device) || temperature_update_args.value;
+    int temperature = get_temperature(args->ui->gy_39_device);
+    temperature = temperature == -1 ? temperature_update_args.value : temperature;
     char temperature_string[10];
     snprintf(temperature_string, 10, "%d", temperature);
 
@@ -147,6 +148,7 @@ static void draw_temperature_status(struct Ui *self) {
 
   set_mode_get_environment(self->gy_39_device);
   int temperature = get_temperature(self->gy_39_device);
+  temperature = temperature == -1 ? 0 : temperature;
   char temperature_string[10];
   snprintf(temperature_string, 10, "%d", temperature);
 
@@ -184,7 +186,8 @@ static void *humidity_update_worker(void *arg) {
       return NULL;
     }
 
-    int humidity = get_humidity(humidity_args->ui->gy_39_device) || humidity_update_args.value;
+    int humidity = get_humidity(humidity_args->ui->gy_39_device);
+    humidity = humidity == -1 ? humidity_update_args.value : humidity;
     char humidity_string[10];
     snprintf(humidity_string, 10, "%d%%", humidity);
 
@@ -221,6 +224,7 @@ static void draw_humidity_status(struct Ui *self) {
 
   set_mode_get_environment(self->gy_39_device);
   int humidity = get_humidity(self->gy_39_device);
+  humidity = humidity == -1 ? 0 : humidity;
   char humidity_string[10];
   snprintf(humidity_string, 10, "%d%%", humidity);
 
@@ -269,8 +273,8 @@ static void *smoke_update_worker(void *arg) {
       return NULL;
     }
 
-    int smoke_concentration =
-      get_smoke_concentration(smoke_args->ui->z_mq_01_device) || smoke_update_args.value;
+    int smoke_concentration = get_smoke_concentration(smoke_args->ui->z_mq_01_device);
+    smoke_concentration = smoke_concentration == -1 ? smoke_update_args.value : smoke_concentration;
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
@@ -312,6 +316,7 @@ static void draw_smoke_status(struct Ui *self) {
   size_t start_column = 305;
 
   int smoke_concentration = get_smoke_concentration(self->z_mq_01_device);
+  smoke_concentration = smoke_concentration == -1 ? 0 : smoke_concentration;
   char smoke_string[10];
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
