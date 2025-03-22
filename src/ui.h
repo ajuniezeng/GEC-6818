@@ -83,8 +83,7 @@ static struct TemperatureUpdateArgs temperature_update_args = {0};
 static struct HumidityUpdateArgs humidity_update_args = {0};
 static pthread_t temperature_update_thread;
 static pthread_t humidity_update_thread;
-static pthread_mutex_t temperature_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t humidity_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t temperature_humidity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct SmokeUpdateArgs {
   struct Ui *ui;
