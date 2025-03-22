@@ -104,6 +104,7 @@ static void *temperature_update_worker(void *arg) {
     if (args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       args->running = 0;
       pthread_mutex_unlock(&temperature_mutex);
+      pthread_join(temperature_update_thread, NULL);
       return NULL;
     }
 
@@ -147,6 +148,7 @@ static void draw_temperature_status(struct Ui *self) {
   size_t start_column = 300;
 
   set_mode_get_environment(self->gy_39_device);
+  sleep(1);
   int temperature = get_temperature(self->gy_39_device);
   temperature = temperature == -1 ? 0 : temperature;
   char temperature_string[10];
@@ -183,6 +185,7 @@ static void *humidity_update_worker(void *arg) {
     if (humidity_args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       humidity_args->running = 0;
       pthread_mutex_unlock(&temperature_mutex);
+      pthread_join(humidity_update_thread, NULL);
       return NULL;
     }
 
@@ -223,6 +226,7 @@ static void draw_humidity_status(struct Ui *self) {
   size_t start_column = 300;
 
   set_mode_get_environment(self->gy_39_device);
+  sleep(1);
   int humidity = get_humidity(self->gy_39_device);
   humidity = humidity == -1 ? 0 : humidity;
   char humidity_string[10];
@@ -270,6 +274,7 @@ static void *smoke_update_worker(void *arg) {
     if (smoke_args->ui->current_ui != SELECT_MENU_SMOKE_DETECTION) {
       smoke_args->running = 0;
       pthread_mutex_unlock(&smoke_mutex);
+      pthread_join(smoke_update_thread, NULL);
       return NULL;
     }
 
@@ -281,7 +286,7 @@ static void *smoke_update_worker(void *arg) {
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
 
-    if (smoke_concentration > 300) {
+    if (smoke_concentration >= 190) {
       beep_control(1);
       sleep(1);
       beep_control(0);
@@ -321,7 +326,7 @@ static void draw_smoke_status(struct Ui *self) {
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
 
-  if (smoke_concentration > 300) {
+  if (smoke_concentration >= 190) {
     beep_control(1);
     sleep(1);
     beep_control(0);
