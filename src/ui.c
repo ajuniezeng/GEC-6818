@@ -97,12 +97,12 @@ static void *temperature_update_worker(void *arg) {
   struct TemperatureUpdateArgs *args = (struct TemperatureUpdateArgs *)arg;
 
   while (args->running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&temperature_mutex);
 
     // Stop when switch to another UI
     if (args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       args->running = 0;
-      pthread_mutex_unlock(&temperature_humidity_mutex);
+      pthread_mutex_unlock(&temperature_mutex);
       return NULL;
     }
 
@@ -116,7 +116,7 @@ static void *temperature_update_worker(void *arg) {
                            args->column + strlen(temperature_string) * 16, args->color,
                            args->background_color);
 
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&temperature_mutex);
 
     // Update every 1 seconds
     sleep(1);
@@ -133,9 +133,9 @@ static void draw_temperature_status(struct Ui *self) {
 
   // Stop existing thread if it's running
   if (temperature_update_args.running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&temperature_mutex);
     temperature_update_args.running = 0;
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&temperature_mutex);
     pthread_join(temperature_update_thread, NULL);
   }
 
@@ -143,8 +143,6 @@ static void draw_temperature_status(struct Ui *self) {
   size_t start_row = 130;
   size_t start_column = 300;
 
-  set_mode_get_environment(self->gy_39_device);
-  sleep(1);
   int temperature = get_temperature(self->gy_39_device);
   char temperature_string[10];
   snprintf(temperature_string, 10, "%d", temperature);
@@ -173,12 +171,12 @@ static void *humidity_update_worker(void *arg) {
   struct HumidityUpdateArgs *humidity_args = (struct HumidityUpdateArgs *)arg;
 
   while (humidity_args->running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&temperature_mutex);
 
     // Stop when switch to another UI
     if (humidity_args->ui->current_ui != SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION) {
       humidity_args->running = 0;
-      pthread_mutex_unlock(&temperature_humidity_mutex);
+      pthread_mutex_unlock(&temperature_mutex);
       return NULL;
     }
 
@@ -188,7 +186,7 @@ static void *humidity_update_worker(void *arg) {
 
     render_string(&humidity_args->ui->lcd, humidity_string, humidity_args->row, humidity_args->column,
                   humidity_args->color, humidity_args->background_color);
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&humidity_mutex);
 
     // Update every 1 seconds
     sleep(1);
@@ -205,9 +203,9 @@ static void draw_humidity_status(struct Ui *self) {
 
   // Stop existing thread if it's running
   if (humidity_update_args.running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&humidity_mutex);
     humidity_update_args.running = 0;
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&humidity_mutex);
     pthread_join(humidity_update_thread, NULL);
   }
 
@@ -215,8 +213,6 @@ static void draw_humidity_status(struct Ui *self) {
   size_t start_row = 208;
   size_t start_column = 300;
 
-  set_mode_get_environment(self->gy_39_device);
-  sleep(1);
   int humidity = get_humidity(self->gy_39_device);
   char humidity_string[10];
   snprintf(humidity_string, 10, "%d%%", humidity);
@@ -248,6 +244,8 @@ static void draw_menu_temperature_humidity_detection(struct Ui *self) {
   self->current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
   render_bmp(&self->lcd, "pic/temperature_humidity_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
+  set_mode_get_environment(self->gy_39_device);
+  sleep(1);
   self->draw_temperature_status(self);
   self->draw_humidity_status(self);
 }
@@ -269,8 +267,8 @@ static void *smoke_update_worker(void *arg) {
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
-    render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column,
-                  smoke_args->color, smoke_args->background_color);
+    render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
+                  smoke_args->background_color);
     pthread_mutex_unlock(&smoke_mutex);
 
     // Update every 1 seconds
@@ -480,17 +478,17 @@ void ui_destructor(struct Ui *self) {
 
   // Stop temperature update thread if running
   if (temperature_update_args.running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&humidity_mutex);
     temperature_update_args.running = 0;
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&humidity_mutex);
     pthread_join(temperature_update_thread, NULL);
   }
 
   // Stop humidity update thread if running
   if (humidity_update_args.running) {
-    pthread_mutex_lock(&temperature_humidity_mutex);
+    pthread_mutex_lock(&humidity_mutex);
     humidity_update_args.running = 0;
-    pthread_mutex_unlock(&temperature_humidity_mutex);
+    pthread_mutex_unlock(&humidity_mutex);
     pthread_join(humidity_update_thread, NULL);
   }
 
