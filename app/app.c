@@ -79,6 +79,25 @@ void start(void) {
       continue;
     }
 
+    if (menu == LED_CONTROL) {
+      ui.need_redraw = 1;
+      ui.current_ui = SELECT_MENU_LED_CONTROL;
+      continue;
+    }
+
+    if (menu == TEMPERATURE_AND_HUMIDITY_DETECTION) {
+      ui.need_redraw = 1;
+      ui.current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
+      continue;
+    }
+
+    if (menu == SMOKE_DETECTION) {
+      ui.need_redraw = 1;
+      ui.current_ui = SELECT_MENU_SMOKE_DETECTION;
+      continue;
+    }
+
+     // LED Control
     if (menu == SELECT_LED0) {
       if (!*led0) {
         led_control(LED0, 1);

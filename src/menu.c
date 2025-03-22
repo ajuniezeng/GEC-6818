@@ -10,7 +10,7 @@ enum MENU check_main_menu_option(size_t x, size_t y) {
   // Main menu options
   if (x >= 605 && x <= 760) {
     if (y >= 61 && y <= 119) {
-      return LIGHT_CONTROL;
+      return LED_CONTROL;
     }
 
     if (y >= 199 && y <= 257) {
@@ -50,7 +50,6 @@ enum MENU select_menu_led_control(struct Ui *ui, struct LedStatus *led_status) {
   enum MENU main_option = check_main_menu_option(x, y);
 
   if (main_option != INVALID) {
-    ui->need_redraw = 1;
     return main_option;
   }
 
@@ -82,7 +81,6 @@ enum MENU select_menu_temperature_humidity_detection(struct Ui *ui) {
   enum MENU main_option = check_main_menu_option(x, y);
 
   if (main_option != INVALID) {
-    ui->need_redraw = 1;
     return main_option;
   }
 
@@ -108,7 +106,6 @@ enum MENU select_menu_smoke_detection(struct Ui *ui) {
   enum MENU main_option = check_main_menu_option(x, y);
 
   if (main_option != INVALID) {
-    ui->need_redraw = 1;
     return main_option;
   }
 
