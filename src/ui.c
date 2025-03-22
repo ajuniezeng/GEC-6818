@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "utils/font.h"
+#include "utils/led_control.h"
 #include "utils/module_control.h"
 #include "utils/render.h"
 
@@ -106,7 +107,7 @@ static void *temperature_update_worker(void *arg) {
       return NULL;
     }
 
-    int temperature = get_temperature(args->ui->gy_39_device);
+    int temperature = get_temperature(args->ui->gy_39_device) || temperature_update_args.value;
     char temperature_string[10];
     snprintf(temperature_string, 10, "%d", temperature);
 
@@ -116,6 +117,7 @@ static void *temperature_update_worker(void *arg) {
                            args->column + strlen(temperature_string) * 16, args->color,
                            args->background_color);
 
+    temperature_update_args.value = temperature;
     pthread_mutex_unlock(&temperature_mutex);
 
     // Update every 1 seconds
@@ -143,6 +145,7 @@ static void draw_temperature_status(struct Ui *self) {
   size_t start_row = 130;
   size_t start_column = 300;
 
+  set_mode_get_environment(self->gy_39_device);
   int temperature = get_temperature(self->gy_39_device);
   char temperature_string[10];
   snprintf(temperature_string, 10, "%d", temperature);
@@ -158,6 +161,7 @@ static void draw_temperature_status(struct Ui *self) {
   temperature_update_args.color = BLACK;
   temperature_update_args.background_color = WHITE;
   temperature_update_args.running = 1;
+  temperature_update_args.value = temperature;
 
   // Create and start thread
   if (pthread_create(&temperature_update_thread, NULL, temperature_update_worker, &temperature_update_args) !=
@@ -180,12 +184,14 @@ static void *humidity_update_worker(void *arg) {
       return NULL;
     }
 
-    int humidity = get_humidity(humidity_args->ui->gy_39_device);
+    int humidity = get_humidity(humidity_args->ui->gy_39_device) || humidity_update_args.value;
     char humidity_string[10];
     snprintf(humidity_string, 10, "%d%%", humidity);
 
     render_string(&humidity_args->ui->lcd, humidity_string, humidity_args->row, humidity_args->column,
                   humidity_args->color, humidity_args->background_color);
+
+    humidity_update_args.value = humidity;
     pthread_mutex_unlock(&humidity_mutex);
 
     // Update every 1 seconds
@@ -213,6 +219,7 @@ static void draw_humidity_status(struct Ui *self) {
   size_t start_row = 208;
   size_t start_column = 300;
 
+  set_mode_get_environment(self->gy_39_device);
   int humidity = get_humidity(self->gy_39_device);
   char humidity_string[10];
   snprintf(humidity_string, 10, "%d%%", humidity);
@@ -226,6 +233,7 @@ static void draw_humidity_status(struct Ui *self) {
   humidity_update_args.color = BLACK;
   humidity_update_args.background_color = WHITE;
   humidity_update_args.running = 1;
+  humidity_update_args.value = humidity;
 
   // Create and start thread
   if (pthread_create(&humidity_update_thread, NULL, humidity_update_worker, &humidity_update_args) != 0) {
@@ -244,8 +252,6 @@ static void draw_menu_temperature_humidity_detection(struct Ui *self) {
   self->current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
   render_bmp(&self->lcd, "pic/temperature_humidity_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
-  set_mode_get_environment(self->gy_39_device);
-  sleep(1);
   self->draw_temperature_status(self);
   self->draw_humidity_status(self);
 }
@@ -263,12 +269,21 @@ static void *smoke_update_worker(void *arg) {
       return NULL;
     }
 
-    int smoke_concentration = get_smoke_concentration(smoke_args->ui->z_mq_01_device);
+    int smoke_concentration =
+      get_smoke_concentration(smoke_args->ui->z_mq_01_device) || smoke_update_args.value;
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
+
+    if (smoke_concentration > 300) {
+      beep_control(1);
+      sleep(1);
+      beep_control(0);
+    }
+
+    smoke_update_args.value = smoke_concentration;
     pthread_mutex_unlock(&smoke_mutex);
 
     // Update every 1 seconds
@@ -301,6 +316,12 @@ static void draw_smoke_status(struct Ui *self) {
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
 
+  if (smoke_concentration > 300) {
+    beep_control(1);
+    sleep(1);
+    beep_control(0);
+  }
+
   // Set up thread arguments
   smoke_update_args.ui = self;
   smoke_update_args.row = start_row;
@@ -308,6 +329,7 @@ static void draw_smoke_status(struct Ui *self) {
   smoke_update_args.color = BLACK;
   smoke_update_args.background_color = WHITE;
   smoke_update_args.running = 1;
+  smoke_update_args.value = smoke_concentration;
 
   // Create and start thread
   if (pthread_create(&smoke_update_thread, NULL, smoke_update_worker, &smoke_update_args) != 0) {

@@ -68,6 +68,7 @@ struct TemperatureUpdateArgs {
   enum COLOR color;
   enum COLOR background_color;
   int running;  // Flag to control thread execution
+  int value; // Temperature value to display
 };
 
 struct HumidityUpdateArgs {
@@ -77,6 +78,7 @@ struct HumidityUpdateArgs {
   enum COLOR color;
   enum COLOR background_color;
   int running;  // Flag to control thread execution
+  int value; // Humidity value to display
 };
 
 static struct TemperatureUpdateArgs temperature_update_args = {0};
@@ -93,6 +95,7 @@ struct SmokeUpdateArgs {
   enum COLOR color;
   enum COLOR background_color;
   int running;  // Flag to control thread execution
+  int value; // Smoke concentration value to display
 };
 
 static struct SmokeUpdateArgs smoke_update_args = {0};
