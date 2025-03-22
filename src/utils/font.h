@@ -1,3 +1,20 @@
+/* This file was modified by me@ajunie.com in 03/18/2025. */
+
+/******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
+ * File Name          : fonts.h
+ * Author             : MCD Application Team
+ * Version            : V1.0.1
+ * Date               : 09/22/2008
+ * Description        : This file contains all the LCD fonts size definition.
+ ********************************************************************************
+ * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
+ * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
+ * AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY DIRECT,
+ * INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE
+ * CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING
+ * INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+ *******************************************************************************/
+
 #pragma once
 
 #include <stdint.h>
