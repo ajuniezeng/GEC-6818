@@ -1,6 +1,12 @@
-# Cross Compile Example
+# GEC-6818: 智能生产车间环境数据监测系统
 
-To Cross Compile, you need to install [`zig`](https://ziglang.org/download/).
+Created by [@ajuniezeng](mailto:me@ajunie.com).
+
+Some code is from [@Kenshin2438](https://github.com/Kenshin2438/GEC6818).
+
+## Cross Compile
+
+To Cross Compile to `arm-linux-gnueabi`, you need to install [`zig`](https://ziglang.org/download/). And run:
 
 ``` 
 zig build
@@ -8,12 +14,9 @@ zig build
 
 You can find the artifacts in the `zig-cache/bin` directory.
 
-<!-- ```
-cmake -S . -DCMAKE_C_FLAGS="-fuse-ld=lld" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -B build
-cmake --build build
-``` -->
+## Compile
 
-Or you can just compile for your host machine using CMake.
+You can just compile for your host machine using CMake.
 
 ```
 cmake -S . -B build
