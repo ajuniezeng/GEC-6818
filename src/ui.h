@@ -44,6 +44,7 @@ struct Ui {
   void (*draw_temperature_status)(struct Ui *self);
   void (*draw_humidity_status)(struct Ui *self);
   void (*draw_smoke_status)(struct Ui *self);
+  void (*draw_smoke_threshold)(struct Ui *self);
 };
 
 void ui_new(struct Ui *self);
@@ -93,8 +94,6 @@ struct SmokeUpdateArgs {
   struct Ui *ui;
   size_t row;
   size_t column;
-  size_t threshold_row;
-  size_t threshold_column;
   enum COLOR color;
   enum COLOR background_color;
   int running;  // Flag to control thread execution
@@ -104,3 +103,16 @@ struct SmokeUpdateArgs {
 static struct SmokeUpdateArgs smoke_update_args = {0};
 static pthread_t smoke_update_thread;
 static pthread_mutex_t smoke_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct SmokeThresholdUpdateArgs {
+  struct Ui *ui;
+  size_t row;
+  size_t column;
+  enum COLOR color;
+  enum COLOR background_color;
+  int running;  // Flag to control thread execution
+};
+
+static struct SmokeThresholdUpdateArgs smoke_threshold_update_args = {0};
+static pthread_t smoke_threshold_update_thread;
+static pthread_mutex_t smoke_threshold_mutex = PTHREAD_MUTEX_INITIALIZER;

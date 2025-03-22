@@ -107,6 +107,10 @@ static void *temperature_update_worker(void *arg) {
       return NULL;
     }
 
+    // Clear previous temperature
+    render_string(&args->ui->lcd, "          ", args->row, args->column, args->background_color,
+                  args->background_color);
+
     int temperature = get_temperature(args->ui->gy_39_device);
     temperature = temperature == -1 ? temperature_update_args.value : temperature;
     char temperature_string[10];
@@ -184,6 +188,10 @@ static void *humidity_update_worker(void *arg) {
       pthread_mutex_unlock(&humidity_mutex);
       return NULL;
     }
+
+    // Clear previous humidity
+    render_string(&humidity_args->ui->lcd, "          ", humidity_args->row, humidity_args->column,
+                  humidity_args->background_color, humidity_args->background_color);
 
     int humidity = get_humidity(humidity_args->ui->gy_39_device);
     humidity = humidity == -1 ? humidity_update_args.value : humidity;
@@ -272,19 +280,17 @@ static void *smoke_update_worker(void *arg) {
       return NULL;
     }
 
+    // Clear previous smoke concentration
+    render_string(&smoke_args->ui->lcd, "          ", smoke_args->row, smoke_args->column, smoke_args->color,
+                  smoke_args->background_color);
+
     int smoke_concentration = get_smoke_concentration(smoke_args->ui->z_mq_01_device);
     smoke_concentration = smoke_concentration == -1 ? smoke_update_args.value : smoke_concentration;
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
-    char threshold_string[4];
-    snprintf(threshold_string, 4, "%d", (int)smoke_args->ui->smoke_concentration_threshold);
-
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
-
-    render_string(&smoke_args->ui->lcd, threshold_string, smoke_args->threshold_row,
-                  smoke_args->threshold_column, smoke_args->color, smoke_args->background_color);
 
     if (smoke_concentration >= (int)smoke_args->ui->smoke_concentration_threshold) {
       beep_control(1);
@@ -320,19 +326,11 @@ static void draw_smoke_status(struct Ui *self) {
   size_t start_row = 140;
   size_t start_column = 305;
 
-  size_t threshold_start_row = 400;
-  size_t threshold_start_column = 400;
-
   int smoke_concentration = get_smoke_concentration(self->z_mq_01_device);
   smoke_concentration = smoke_concentration == -1 ? 0 : smoke_concentration;
   char smoke_string[10];
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
-
-  // Render threshold
-  char threshold_string[4];
-  snprintf(threshold_string, 4, "%d", (int)self->smoke_concentration_threshold);
-  render_string(&self->lcd, threshold_string, threshold_start_row, threshold_start_column, BLACK, WHITE);
 
   if (smoke_concentration >= (int)self->smoke_concentration_threshold) {
     beep_control(1);
@@ -344,8 +342,6 @@ static void draw_smoke_status(struct Ui *self) {
   smoke_update_args.ui = self;
   smoke_update_args.row = start_row;
   smoke_update_args.column = start_column;
-  smoke_update_args.threshold_row = threshold_start_row;
-  smoke_update_args.threshold_column = threshold_start_column;
   smoke_update_args.color = BLACK;
   smoke_update_args.background_color = WHITE;
   smoke_update_args.running = 1;
@@ -355,6 +351,76 @@ static void draw_smoke_status(struct Ui *self) {
   if (pthread_create(&smoke_update_thread, NULL, smoke_update_worker, &smoke_update_args) != 0) {
     smoke_update_args.running = 0;
     fprintf(stderr, "Failed to create smoke update thread\n");
+    return;
+  }
+}
+
+static void *smoke_threshold_update_worker(void *arg) {
+  struct SmokeThresholdUpdateArgs *smoke_threshold_args = (struct SmokeThresholdUpdateArgs *)arg;
+
+  while (smoke_threshold_args->running) {
+    pthread_mutex_lock(&smoke_threshold_mutex);
+
+    // Stop when switch to another UI
+    if (smoke_threshold_args->ui->current_ui != SELECT_MENU_SMOKE_DETECTION) {
+      smoke_threshold_args->running = 0;
+      pthread_mutex_unlock(&smoke_threshold_mutex);
+      return NULL;
+    }
+
+    // Clear previous threshold
+    render_string(&smoke_threshold_args->ui->lcd, "   ", smoke_threshold_args->row,
+                  smoke_threshold_args->column, smoke_threshold_args->color,
+                  smoke_threshold_args->background_color);
+
+    char threshold_string[4];
+    snprintf(threshold_string, 4, "%d", (int)smoke_threshold_args->ui->smoke_concentration_threshold);
+
+    render_string(&smoke_threshold_args->ui->lcd, threshold_string, smoke_threshold_args->row,
+                  smoke_threshold_args->column, smoke_threshold_args->color,
+                  smoke_threshold_args->background_color);
+
+    pthread_mutex_unlock(&smoke_threshold_mutex);
+  }
+
+  return NULL;
+}
+
+static void draw_smoke_threshold(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Stop existing thread if it's running
+  if (smoke_threshold_update_args.running) {
+    pthread_mutex_lock(&smoke_threshold_mutex);
+    smoke_threshold_update_args.running = 0;
+    pthread_mutex_unlock(&smoke_threshold_mutex);
+    pthread_join(smoke_threshold_update_thread, NULL);
+  }
+
+  // Immediate first draw
+  size_t threshold_start_row = 375;
+  size_t threshold_start_column = 385;
+
+  char threshold_string[4];
+  snprintf(threshold_string, 4, "%d", (int)self->smoke_concentration_threshold);
+  render_string(&self->lcd, threshold_string, threshold_start_row, threshold_start_column, BLACK, WHITE);
+
+  // Set up thread arguments
+  smoke_threshold_update_args.ui = self;
+  smoke_threshold_update_args.row = threshold_start_row;
+  smoke_threshold_update_args.column = threshold_start_column;
+  smoke_threshold_update_args.color = BLACK;
+  smoke_threshold_update_args.background_color = WHITE;
+  smoke_threshold_update_args.running = 1;
+
+  // Create and start thread
+  if (pthread_create(&smoke_threshold_update_thread, NULL, smoke_threshold_update_worker,
+                     &smoke_threshold_update_args) != 0) {
+    smoke_threshold_update_args.running = 0;
+    fprintf(stderr, "Failed to create smoke threshold update thread\n");
     return;
   }
 }
@@ -503,6 +569,7 @@ void ui_new(struct Ui *self) {
   self->draw_menu_temperature_humidity_detection = draw_menu_temperature_humidity_detection;
   self->draw_menu_smoke_detection = draw_menu_smoke_detection;
   self->draw_smoke_status = draw_smoke_status;
+  self->draw_smoke_threshold = draw_smoke_threshold;
 }
 
 void ui_destructor(struct Ui *self) {
