@@ -15,6 +15,13 @@ enum LED {
   LED_ALL,
 };
 
+struct LedStatus {
+  int led0;
+  int led1;
+  int led2;
+  int led3;
+};
+
 /// Control the beep
 ///
 /// value = 1: turn on the beep

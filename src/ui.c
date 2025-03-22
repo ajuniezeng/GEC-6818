@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "utils/font.h"
 #include "utils/module_control.h"
 #include "utils/render.h"
 
@@ -29,7 +30,7 @@ static void draw_window(struct Ui *self, size_t height, size_t width, size_t row
   }
 }
 
-static void draw_menu_led_control(struct Ui *self) {
+static void draw_menu_led_control(struct Ui *self, struct LedStatus *led_status) {
   if (self == NULL) {
     fprintf(stderr, "UI is uninitialized\n");
     exit(EXIT_FAILURE);
@@ -38,7 +39,10 @@ static void draw_menu_led_control(struct Ui *self) {
   self->current_ui = SELECT_MENU_LED_CONTROL;
   render_bmp(&self->lcd, "pic/led_control.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
-  self->draw_led_status(self, LED0, -1);
+  self->draw_led_status(self, LED0, led_status->led0);
+  self->draw_led_status(self, LED1, led_status->led1);
+  self->draw_led_status(self, LED2, led_status->led2);
+  self->draw_led_status(self, LED3, led_status->led3);
 }
 
 static void draw_led_status(struct Ui *self, enum LED led, int value) {
@@ -58,7 +62,7 @@ static void draw_led_status(struct Ui *self, enum LED led, int value) {
   if (value == 1) {
     led_status = KAI;
   } else if (value == -1) {
-    led_status = KAI;
+    led_status = GUAN;
     render_zh_cn_character(&self->lcd, led_status, start_row_1, start_column, BLACK, WHITE);
     render_zh_cn_character(&self->lcd, led_status, start_row_2, start_column, BLACK, WHITE);
     render_zh_cn_character(&self->lcd, led_status, start_row_3, start_column, BLACK, WHITE);
@@ -244,8 +248,8 @@ static void draw_menu_temperature_humidity_detection(struct Ui *self) {
   self->current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
   render_bmp(&self->lcd, "pic/temperature_humidity_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
-  draw_temperature_status(self);
-  draw_humidity_status(self);
+  self->draw_temperature_status(self);
+  self->draw_humidity_status(self);
 }
 
 static void *smoke_update_worker(void *arg) {
@@ -324,7 +328,7 @@ static void draw_menu_smoke_detection(struct Ui *self) {
   self->current_ui = SELECT_MENU_SMOKE_DETECTION;
   render_bmp(&self->lcd, "pic/smoke_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
-  draw_smoke_status(self);
+  self->draw_smoke_status(self);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
@@ -441,6 +445,7 @@ void ui_new(struct Ui *self) {
   self->prompt_window_width = 0;
   self->current_ui = SELECT_MENU_LED_CONTROL;
   self->previous_ui = SELECT_MENU_LED_CONTROL;
+  self->need_redraw = 1;
   self->z_mq_01_device = uart_init(CON2_PATH);
   self->gy_39_device = uart_init(CON3_PATH);
 

@@ -24,6 +24,7 @@ struct Ui {
   size_t prompt_window_width;
   enum UiType current_ui;
   enum UiType previous_ui;
+  int need_redraw;
   int gy_39_device;
   int z_mq_01_device;
 
@@ -32,7 +33,7 @@ struct Ui {
   void (*draw_time)(struct Ui *self, size_t row, size_t column, enum COLOR color,
                     enum COLOR background_color);
 
-  void (*draw_menu_led_control)(struct Ui *self);
+  void (*draw_menu_led_control)(struct Ui *self, struct LedStatus *led_status);
   void (*draw_menu_temperature_humidity_detection)(struct Ui *self);
   void (*draw_menu_smoke_detection)(struct Ui *self);
 

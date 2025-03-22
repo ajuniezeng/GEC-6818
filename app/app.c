@@ -9,34 +9,31 @@
 
 void start(void) {
   struct Ui ui;
+  struct LedStatus led_status = {0};
+  int *led0 = &led_status.led0;
+  int *led1 = &led_status.led1;
+  int *led2 = &led_status.led2;
+  int *led3 = &led_status.led3;
   ui_new(&ui);
 
-  
-  int led0 = 1;
-  int led1 = 1;
-  int led2 = 1;
-  int led3 = 1;
-  
   while (1) {
     enum MENU menu;
-    
+
     while (1) {
       enum UiType current_ui = ui.current_ui;
-      
+
       switch (current_ui) {
         case SELECT_MENU_LED_CONTROL:
-        ui.draw_menu_led_control(&ui);
-          menu = select_menu_led_control(&ui.touch);
+          menu = select_menu_led_control(&ui, &led_status);
           break;
         case PROMPT_WINDOW:
           menu = prompt_window(&ui);
           break;
-        // case SELECT_MENU_SMOKE_DETECTION:
-        // 
-        //   break;
+        case SELECT_MENU_SMOKE_DETECTION:
+          menu = select_menu_smoke_detection(&ui);
+          break;
         case SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION:
-          ui.draw_menu_temperature_humidity_detection(&ui);
-          menu = select_menu_main_options(&ui.touch);
+          menu = select_menu_temperature_humidity_detection(&ui);
           break;
         default:
           menu = INVALID;
@@ -65,59 +62,68 @@ void start(void) {
       switch (ui.previous_ui) {
         case SELECT_MENU_LED_CONTROL:
           ui.current_ui = SELECT_MENU_LED_CONTROL;
+          ui.need_redraw = 1;
+          break;
+        case SELECT_MENU_SMOKE_DETECTION:
+          ui.current_ui = SELECT_MENU_SMOKE_DETECTION;
+          ui.need_redraw = 1;
+          break;
+        case SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION:
+          ui.current_ui = SELECT_MENU_TEMPERATURE_HUMIDITY_DETECTION;
+          ui.need_redraw = 1;
           break;
         default:
           perror("Invalid previous UI");
           break;
       }
-      break;
+      continue;
     }
 
     if (menu == SELECT_LED0) {
-      if (!led0) {
+      if (!*led0) {
         led_control(LED0, 1);
-        led0 = 1;
+        *led0 = 1;
       } else {
         led_control(LED0, 0);
-        led0 = 0;
+        *led0 = 0;
       }
-      ui.draw_led_status(&ui, LED0, led0);
+      ui.draw_led_status(&ui, LED0, *led0);
       continue;
     }
 
     if (menu == SELECT_LED1) {
-      if (!led1) {
+      if (!*led1) {
         led_control(LED1, 1);
-        led1 = 1;
+        *led1 = 1;
       } else {
         led_control(LED1, 0);
-        led1 = 0;
+        *led1 = 0;
       }
-      ui.draw_led_status(&ui, LED1, led1);
+      ui.draw_led_status(&ui, LED1, *led1);
       continue;
     }
 
     if (menu == SELECT_LED2) {
-      if (!led2) {
+      if (!*led2) {
         led_control(LED2, 1);
-        led2 = 1;
+        *led2 = 1;
       } else {
         led_control(LED2, 0);
-        led2 = 0;
+        *led2 = 0;
       }
-      ui.draw_led_status(&ui, LED2, led2);
+      ui.draw_led_status(&ui, LED2, *led2);
       continue;
     }
 
     if (menu == SELECT_LED3) {
-      if (!led3) {
+      if (!*led3) {
         led_control(LED3, 1);
-        led3 = 1;
+        *led3 = 1;
       } else {
         led_control(LED3, 0);
-        led3 = 0;
+        *led3 = 0;
       }
-      ui.draw_led_status(&ui, LED3, led3);
+      ui.draw_led_status(&ui, LED3, *led3);
       continue;
     }
   }

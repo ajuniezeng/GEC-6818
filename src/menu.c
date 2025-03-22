@@ -31,8 +31,14 @@ enum MENU check_main_menu_option(size_t x, size_t y) {
   return INVALID;
 }
 
-enum MENU select_menu_led_control(struct Touch *touch) {
+enum MENU select_menu_led_control(struct Ui *ui, struct LedStatus *led_status) {
   enum MOVE type;
+  struct Touch *touch = &ui->touch;
+
+  if (ui->need_redraw) {
+    ui->draw_menu_led_control(ui, led_status);
+    ui->need_redraw = 0;
+  }
 
   while ((type = touch->get_move(touch)) != TAP) continue;
 
@@ -44,6 +50,7 @@ enum MENU select_menu_led_control(struct Touch *touch) {
   enum MENU main_option = check_main_menu_option(x, y);
 
   if (main_option != INVALID) {
+    ui->need_redraw = 1;
     return main_option;
   }
 
@@ -56,8 +63,9 @@ enum MENU select_menu_led_control(struct Touch *touch) {
   return INVALID;
 }
 
-enum MENU select_menu_main_options(struct Touch *touch) {
+enum MENU select_menu_temperature_humidity_detection(struct Ui *ui) {
   enum MOVE type;
+  struct Touch *touch = &ui->touch;
 
   while ((type = touch->get_move(touch)) != TAP) continue;
 
@@ -69,6 +77,28 @@ enum MENU select_menu_main_options(struct Touch *touch) {
   enum MENU main_option = check_main_menu_option(x, y);
 
   if (main_option != INVALID) {
+    ui->need_redraw = 1;
+    return main_option;
+  }
+
+  return INVALID;
+}
+
+enum MENU select_menu_smoke_detection(struct Ui *ui) {
+  enum MOVE type;
+  struct Touch *touch = &ui->touch;
+
+  while ((type = touch->get_move(touch)) != TAP) continue;
+
+  size_t x = abs(touch->x);
+  size_t y = abs(touch->y);
+
+  printf("(x = %lu, y = %lu)\n", x, y);
+
+  enum MENU main_option = check_main_menu_option(x, y);
+
+  if (main_option != INVALID) {
+    ui->need_redraw = 1;
     return main_option;
   }
 
