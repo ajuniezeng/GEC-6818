@@ -7,8 +7,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "utils/font.h"
-#include "utils/lcd_control.h"
 #include "utils/module_control.h"
 #include "utils/render.h"
 
@@ -231,6 +229,7 @@ static void draw_humidity_status(struct Ui *self) {
 
   // Create and start thread
   if (pthread_create(&humidity_update_thread, NULL, humidity_update_worker, &humidity_update_args) != 0) {
+    humidity_update_args.running = 0;
     fprintf(stderr, "Failed to create humidity update thread\n");
     return;
   }
@@ -247,6 +246,85 @@ static void draw_menu_temperature_humidity_detection(struct Ui *self) {
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
   draw_temperature_status(self);
   draw_humidity_status(self);
+}
+
+static void *smoke_update_worker(void *arg) {
+  struct SmokeUpdateArgs *smoke_args = (struct SmokeUpdateArgs *)arg;
+
+  while (smoke_args->running) {
+    pthread_mutex_lock(&smoke_mutex);
+
+    // Stop when switch to another UI
+    if (smoke_args->ui->current_ui != SELECT_MENU_SMOKE_DETECTION) {
+      smoke_args->running = 0;
+      pthread_mutex_unlock(&smoke_mutex);
+      return NULL;
+    }
+
+    int smoke_concentration = get_smoke_concentration(smoke_args->ui->z_mq_01_device);
+    char smoke_string[10];
+    snprintf(smoke_string, 10, "%d", smoke_concentration);
+
+    render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column,
+                  smoke_args->color, smoke_args->background_color);
+    pthread_mutex_unlock(&smoke_mutex);
+
+    // Update every 1 seconds
+    sleep(1);
+  }
+
+  return NULL;
+}
+
+static void draw_smoke_status(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Stop existing thread if it's running
+  if (smoke_update_args.running) {
+    pthread_mutex_lock(&smoke_mutex);
+    smoke_update_args.running = 0;
+    pthread_mutex_unlock(&smoke_mutex);
+    pthread_join(smoke_update_thread, NULL);
+  }
+
+  // Immediate first draw
+  size_t start_row = 125;
+  size_t start_column = 295;
+
+  int smoke_concentration = get_smoke_concentration(self->z_mq_01_device);
+  char smoke_string[10];
+  snprintf(smoke_string, 10, "%d", smoke_concentration);
+  render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
+
+  // Set up thread arguments
+  smoke_update_args.ui = self;
+  smoke_update_args.row = start_row;
+  smoke_update_args.column = start_column;
+  smoke_update_args.color = BLACK;
+  smoke_update_args.background_color = WHITE;
+  smoke_update_args.running = 1;
+
+  // Create and start thread
+  if (pthread_create(&smoke_update_thread, NULL, smoke_update_worker, &smoke_update_args) != 0) {
+    smoke_update_args.running = 0;
+    fprintf(stderr, "Failed to create smoke update thread\n");
+    return;
+  }
+}
+
+static void draw_menu_smoke_detection(struct Ui *self) {
+  if (self == NULL) {
+    fprintf(stderr, "UI is uninitialized\n");
+    exit(EXIT_FAILURE);
+  }
+
+  self->current_ui = SELECT_MENU_SMOKE_DETECTION;
+  render_bmp(&self->lcd, "pic/smoke_detection.bmp", 0, 0);
+  self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
+  draw_smoke_status(self);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
@@ -346,6 +424,7 @@ static void draw_time(struct Ui *self, size_t row, size_t column, enum COLOR col
 
   // Create and start thread
   if (pthread_create(&time_update_thread, NULL, time_update_worker, &time_update_args) != 0) {
+    time_update_args.running = 0;
     fprintf(stderr, "Failed to create time update thread\n");
     return;
   }
@@ -362,7 +441,8 @@ void ui_new(struct Ui *self) {
   self->prompt_window_width = 0;
   self->current_ui = SELECT_MENU_LED_CONTROL;
   self->previous_ui = SELECT_MENU_LED_CONTROL;
-  self->gy_39_device = uart_init(CON2_PATH);
+  self->z_mq_01_device = uart_init(CON2_PATH);
+  self->gy_39_device = uart_init(CON3_PATH);
 
   self->lcd.clear(&self->lcd);
   self->lcd.draw_background(&self->lcd, WHITE);
@@ -375,6 +455,8 @@ void ui_new(struct Ui *self) {
   self->draw_temperature_status = draw_temperature_status;
   self->draw_humidity_status = draw_humidity_status;
   self->draw_menu_temperature_humidity_detection = draw_menu_temperature_humidity_detection;
+  self->draw_menu_smoke_detection = draw_menu_smoke_detection;
+  self->draw_smoke_status = draw_smoke_status;
 }
 
 void ui_destructor(struct Ui *self) {
@@ -399,6 +481,23 @@ void ui_destructor(struct Ui *self) {
     pthread_join(temperature_update_thread, NULL);
   }
 
+  // Stop humidity update thread if running
+  if (humidity_update_args.running) {
+    pthread_mutex_lock(&humidity_mutex);
+    humidity_update_args.running = 0;
+    pthread_mutex_unlock(&humidity_mutex);
+    pthread_join(humidity_update_thread, NULL);
+  }
+
+  // Stop smoke update thread if running
+  if (smoke_update_args.running) {
+    pthread_mutex_lock(&smoke_mutex);
+    smoke_update_args.running = 0;
+    pthread_mutex_unlock(&smoke_mutex);
+    pthread_join(smoke_update_thread, NULL);
+  }
+
+  close(self->z_mq_01_device);
   close(self->gy_39_device);
   touch_destructor(&self->touch);
   lcd_destructor(&self->lcd);

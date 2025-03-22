@@ -25,6 +25,7 @@ struct Ui {
   enum UiType current_ui;
   enum UiType previous_ui;
   int gy_39_device;
+  int z_mq_01_device;
 
   void (*draw_window)(struct Ui *self, size_t height, size_t width, size_t row, size_t column,
                       enum COLOR color, enum COLOR background_color);
@@ -33,12 +34,14 @@ struct Ui {
 
   void (*draw_menu_led_control)(struct Ui *self);
   void (*draw_menu_temperature_humidity_detection)(struct Ui *self);
+  void (*draw_menu_smoke_detection)(struct Ui *self);
 
   void (*draw_prompt_window)(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length);
 
   void (*draw_led_status)(struct Ui *self, enum LED led, int value);
   void (*draw_temperature_status)(struct Ui *self);
   void (*draw_humidity_status)(struct Ui *self);
+  void (*draw_smoke_status)(struct Ui *self);
 };
 
 void ui_new(struct Ui *self);
@@ -81,3 +84,16 @@ static pthread_t temperature_update_thread;
 static pthread_t humidity_update_thread;
 static pthread_mutex_t temperature_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t humidity_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct SmokeUpdateArgs {
+  struct Ui *ui;
+  size_t row;
+  size_t column;
+  enum COLOR color;
+  enum COLOR background_color;
+  int running;  // Flag to control thread execution
+};
+
+static struct SmokeUpdateArgs smoke_update_args = {0};
+static pthread_t smoke_update_thread;
+static pthread_mutex_t smoke_mutex = PTHREAD_MUTEX_INITIALIZER;
