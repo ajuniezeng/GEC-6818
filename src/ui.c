@@ -435,6 +435,7 @@ static void draw_menu_smoke_detection(struct Ui *self) {
   render_bmp(&self->lcd, "pic/smoke_detection.bmp", 0, 0);
   self->draw_time(self, TIME_PANEL_ROW, TIME_PANEL_COLUMN, BLACK, BACKGROUND);
   self->draw_smoke_status(self);
+  self->draw_smoke_threshold(self);
 }
 
 static void draw_prompt_window(struct Ui *self, enum ZH_CH_CHARACTERS *prompt, size_t length) {
