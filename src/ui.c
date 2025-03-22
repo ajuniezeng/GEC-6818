@@ -401,7 +401,7 @@ static void draw_smoke_threshold(struct Ui *self) {
   }
 
   // Immediate first draw
-  size_t threshold_start_row = 380;
+  size_t threshold_start_row = 370;
   size_t threshold_start_column = 385;
 
   char threshold_string[4];
