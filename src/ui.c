@@ -277,8 +277,8 @@ static void *smoke_update_worker(void *arg) {
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
-    char threshold_string[3];
-    snprintf(threshold_string, 3, "%d", (int)smoke_args->ui->smoke_concentration_threshold);
+    char threshold_string[4];
+    snprintf(threshold_string, 4, "%d", (int)smoke_args->ui->smoke_concentration_threshold);
 
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
@@ -330,8 +330,8 @@ static void draw_smoke_status(struct Ui *self) {
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
 
   // Render threshold
-  char threshold_string[3];
-  snprintf(threshold_string, 3, "%d", (int)self->smoke_concentration_threshold);
+  char threshold_string[4];
+  snprintf(threshold_string, 4, "%d", (int)self->smoke_concentration_threshold);
   render_string(&self->lcd, threshold_string, threshold_start_row, threshold_start_column, BLACK, WHITE);
 
   if (smoke_concentration >= (int)self->smoke_concentration_threshold) {

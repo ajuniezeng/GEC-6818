@@ -112,11 +112,11 @@ enum MENU select_menu_smoke_detection(struct Ui *ui) {
   // Threshold button
   // Increase
   if (x >= 280 && x <= 360 && y >= 350 && y <= 410) {
-    ui->smoke_concentration_threshold += 10;
+    if (ui->smoke_concentration_threshold < 1000) ui->smoke_concentration_threshold += 10;
   }
   // Decrease
   if (x >= 450 && x <= 520 && y >= 350 && y <= 410) {
-    ui->smoke_concentration_threshold -= 10;
+    if (ui->smoke_concentration_threshold > 0) ui->smoke_concentration_threshold -= 10;
   }
 
   return INVALID;
