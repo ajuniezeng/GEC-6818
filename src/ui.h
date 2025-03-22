@@ -22,6 +22,7 @@ struct Ui {
   struct LCD lcd;
   struct Touch touch;
   size_t prompt_window_width;
+  size_t smoke_concentration_threshold;
   enum UiType current_ui;
   enum UiType previous_ui;
   int need_redraw;
@@ -92,6 +93,8 @@ struct SmokeUpdateArgs {
   struct Ui *ui;
   size_t row;
   size_t column;
+  size_t threshold_row;
+  size_t threshold_column;
   enum COLOR color;
   enum COLOR background_color;
   int running;  // Flag to control thread execution

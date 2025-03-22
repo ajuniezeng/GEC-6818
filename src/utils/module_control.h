@@ -5,7 +5,6 @@
 #define CON3_PATH "/dev/ttySAC2"
 #define CON4_PATH "/dev/ttySAC3"
 #define CON5_PATH "/dev/ttySAC4"
-#define SMOKE_CONCENTRATION_THRESHOLD 210
 
 static const uint8_t command_get_illuminance[] = {0xA5, 0x81, 0x26};
 static const uint8_t command_get_environment[] = {0xA5, 0x82, 0x27};

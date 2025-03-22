@@ -143,7 +143,7 @@ static void draw_temperature_status(struct Ui *self) {
   }
 
   // Immediate first draw
-  size_t start_row = 130;
+  size_t start_row = 140;
   size_t start_column = 300;
 
   int temperature = get_temperature(self->gy_39_device);
@@ -152,8 +152,8 @@ static void draw_temperature_status(struct Ui *self) {
   snprintf(temperature_string, 10, "%d", temperature);
 
   render_string(&self->lcd, temperature_string, start_row, start_column, BLACK, WHITE);
-  render_zh_cn_character(&self->lcd, CENTIGRADE, start_row, start_column + strlen(temperature_string) * 16,
-                         BLACK, WHITE);
+  render_zh_cn_character(&self->lcd, CENTIGRADE, start_row - 5,
+                         start_column + strlen(temperature_string) * 16, BLACK, WHITE);
 
   // Set up thread arguments
   temperature_update_args.ui = self;
@@ -218,7 +218,7 @@ static void draw_humidity_status(struct Ui *self) {
   }
 
   // Immediate first draw
-  size_t start_row = 208;
+  size_t start_row = 215;
   size_t start_column = 300;
 
   int humidity = get_humidity(self->gy_39_device);
@@ -277,10 +277,16 @@ static void *smoke_update_worker(void *arg) {
     char smoke_string[10];
     snprintf(smoke_string, 10, "%d", smoke_concentration);
 
+    char threshold_string[3];
+    snprintf(threshold_string, 3, "%d", (int)smoke_args->ui->smoke_concentration_threshold);
+
     render_string(&smoke_args->ui->lcd, smoke_string, smoke_args->row, smoke_args->column, smoke_args->color,
                   smoke_args->background_color);
 
-    if (smoke_concentration >= SMOKE_CONCENTRATION_THRESHOLD) {
+    render_string(&smoke_args->ui->lcd, threshold_string, smoke_args->threshold_row,
+                  smoke_args->threshold_column, smoke_args->color, smoke_args->background_color);
+
+    if (smoke_concentration >= (int)smoke_args->ui->smoke_concentration_threshold) {
       beep_control(1);
       sleep(1);
       beep_control(0);
@@ -311,8 +317,11 @@ static void draw_smoke_status(struct Ui *self) {
   }
 
   // Immediate first draw
-  size_t start_row = 130;
+  size_t start_row = 140;
   size_t start_column = 305;
+
+  size_t threshold_start_row = 400;
+  size_t threshold_start_column = 400;
 
   int smoke_concentration = get_smoke_concentration(self->z_mq_01_device);
   smoke_concentration = smoke_concentration == -1 ? 0 : smoke_concentration;
@@ -320,7 +329,12 @@ static void draw_smoke_status(struct Ui *self) {
   snprintf(smoke_string, 10, "%d", smoke_concentration);
   render_string(&self->lcd, smoke_string, start_row, start_column, BLACK, WHITE);
 
-  if (smoke_concentration >= SMOKE_CONCENTRATION_THRESHOLD) {
+  // Render threshold
+  char threshold_string[3];
+  snprintf(threshold_string, 3, "%d", (int)self->smoke_concentration_threshold);
+  render_string(&self->lcd, threshold_string, threshold_start_row, threshold_start_column, BLACK, WHITE);
+
+  if (smoke_concentration >= (int)self->smoke_concentration_threshold) {
     beep_control(1);
     sleep(1);
     beep_control(0);
@@ -330,6 +344,8 @@ static void draw_smoke_status(struct Ui *self) {
   smoke_update_args.ui = self;
   smoke_update_args.row = start_row;
   smoke_update_args.column = start_column;
+  smoke_update_args.threshold_row = threshold_start_row;
+  smoke_update_args.threshold_column = threshold_start_column;
   smoke_update_args.color = BLACK;
   smoke_update_args.background_color = WHITE;
   smoke_update_args.running = 1;
@@ -467,6 +483,7 @@ void ui_new(struct Ui *self) {
   lcd_new(&self->lcd);
   touch_new(&self->touch);
   self->prompt_window_width = 0;
+  self->smoke_concentration_threshold = 210;
   self->current_ui = SELECT_MENU_LED_CONTROL;
   self->previous_ui = SELECT_MENU_LED_CONTROL;
   self->need_redraw = 1;
