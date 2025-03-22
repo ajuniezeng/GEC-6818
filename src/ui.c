@@ -383,7 +383,8 @@ static void *smoke_threshold_update_worker(void *arg) {
     pthread_mutex_unlock(&smoke_threshold_mutex);
 
     // Update every 0.5 second
-    usleep(500000);
+    struct timespec req = {0, 500000000};  // 0.5 seconds
+    nanosleep(&req, NULL);
   }
 
   return NULL;
